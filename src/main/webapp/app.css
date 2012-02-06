@@ -1,0 +1,16 @@
+#app-header {
+	font-weight: bold;
+	font-size: 20px;
+	padding: 8px 20px;
+}
+
+.parameter {
+	padding: 0 4px;
+	margin: 0 1px;
+	background-color: #DFE8F6;
+	border-radius: 6px;
+}
+.parameter:hover {
+	color: #FFF;
+	background-color: #15498B;
+}

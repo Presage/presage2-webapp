@@ -25,6 +25,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -35,6 +37,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import uk.ac.imperial.presage2.core.db.DatabaseService;
 import uk.ac.imperial.presage2.core.db.StorageService;
@@ -44,9 +47,9 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class ListSimulations extends HttpServlet {
+public class SimulationServlet extends HttpServlet {
 
-	private final Logger logger = Logger.getLogger(ListSimulations.class);
+	private final Logger logger = Logger.getLogger(SimulationServlet.class);
 	private static final long serialVersionUID = 1L;
 	StorageService sto;
 
@@ -55,9 +58,11 @@ public class ListSimulations extends HttpServlet {
 
 	private final static String[] simulationFields = { "name", "classname",
 			"state", "currentTime", "created", "started", "finished", "id" };
+	
+	private final static Pattern ID_REGEX = Pattern.compile("/(\\d+)$");
 
 	@Inject
-	public ListSimulations(DatabaseService db, StorageService sto)
+	public SimulationServlet(DatabaseService db, StorageService sto)
 			throws Exception {
 		super();
 		if (!db.isStarted())
@@ -65,8 +70,80 @@ public class ListSimulations extends HttpServlet {
 		this.sto = sto;
 	}
 
+	/**
+	 * REST CREATE simulation
+	 */
+	@Override
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+			throws ServletException, IOException {
+		try {
+			// parse posted simulation json object
+			JSONObject request = new JSONObject(new JSONTokener(req.getReader()));
+			// validate data
+			String name = request.getString("name");
+			String classname = request.getString("classname");
+			String state = request.getString("state");
+			int finishTime = request.getInt("finishtime");
+			PersistentSimulation sim = sto.createSimulation(name, classname, state, finishTime);
+			resp.setStatus(201);
+			JSONObject response = new JSONObject();
+			response.put("success", true);
+			response.put("message", "Created simulation");
+			response.put("data", simulationToJSON(sim));
+			resp.getWriter().write(response.toString());
+		} catch (JSONException e) {
+			// bad request
+			resp.setStatus(400);
+			// TODO error JSON
+		}
+	}
+	
+	/**
+	 * REST UPDATE simulation
+	 */
+	@Override
+	protected void doPut(HttpServletRequest req, HttpServletResponse resp)
+			throws ServletException, IOException {
+		String path = req.getPathInfo();
+		Matcher matcher = ID_REGEX.matcher(path);
+		if(matcher.matches()) {
+			// TODO update
+		} else {
+			resp.setStatus(400);
+		}
+	}
+	
 	@Override
 	protected synchronized void doGet(HttpServletRequest req,
+			HttpServletResponse resp) throws ServletException, IOException {
+		// GET switchboard: route rest gets and get lists to correct function
+		String path = req.getPathInfo();
+		
+		if(path != null) {
+			Matcher matcher = ID_REGEX.matcher(path);
+			if(matcher.matches()) {
+				doGetSimulation(req, resp, Long.parseLong(matcher.group(1)));
+				return;
+			}
+		}
+		doListSimulations(req, resp);
+	}
+	
+	private void doGetSimulation(HttpServletRequest req,
+			HttpServletResponse resp, long parseLong) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/**
+	 * List simulations.
+	 * 
+	 * @param req
+	 * @param resp
+	 * @throws ServletException
+	 * @throws IOException
+	 */
+	protected synchronized void doListSimulations(HttpServletRequest req,
 			HttpServletResponse resp) throws ServletException, IOException {
 		// paging parameters
 		final int start = getIntegerParameter(req, "start", 0);
@@ -109,28 +186,12 @@ public class ListSimulations extends HttpServlet {
 			for (ListIterator<PersistentSimulation> it = this.cachedSimulations
 					.listIterator(start); it.hasNext();) {
 				PersistentSimulation sim = it.next();
-				JSONObject jsonSim = new JSONObject();
-				jsonSim.put("id", sim.getID());
-				jsonSim.put("name", sim.getName());
-				jsonSim.put("classname", sim.getClassName());
-				jsonSim.put("state", sim.getState());
-				jsonSim.put("finishTime", sim.getFinishTime());
-				jsonSim.put("currentTime", sim.getCurrentTime());
-				jsonSim.put("createdAt", sim.getCreatedAt());
-				jsonSim.put("startedAt", sim.getStartedAt());
-				jsonSim.put("finishedAt", sim.getFinishedAt());
-				JSONObject parameters = new JSONObject();
-				for (Entry<String, Object> param : sim.getParameters()
-						.entrySet()) {
-					parameters.put(param.getKey(), param.getValue().toString());
-				}
-				jsonSim.put("parameters", parameters);
-				simulations.put(jsonSim);
+				simulations.put(simulationToJSON(sim));
 				count++;
 				if (count > limit)
 					break;
 			}
-			jsonResp.put("simulations", simulations);
+			jsonResp.put("data", simulations);
 
 		} catch (JSONException e) {
 			logger.error("JSON write error.", e);
@@ -156,6 +217,26 @@ public class ListSimulations extends HttpServlet {
 		} else {
 			return Integer.parseInt(param.toString());
 		}
+	}
+	
+	public static JSONObject simulationToJSON(PersistentSimulation sim) throws JSONException {
+		JSONObject jsonSim = new JSONObject();
+		jsonSim.put("id", sim.getID());
+		jsonSim.put("name", sim.getName());
+		jsonSim.put("classname", sim.getClassName());
+		jsonSim.put("state", sim.getState());
+		jsonSim.put("finishTime", sim.getFinishTime());
+		jsonSim.put("currentTime", sim.getCurrentTime());
+		jsonSim.put("createdAt", sim.getCreatedAt());
+		jsonSim.put("startedAt", sim.getStartedAt());
+		jsonSim.put("finishedAt", sim.getFinishedAt());
+		JSONObject parameters = new JSONObject();
+		for (Entry<String, Object> param : sim.getParameters()
+				.entrySet()) {
+			parameters.put(param.getKey(), param.getValue().toString());
+		}
+		jsonSim.put("parameters", parameters);
+		return jsonSim;
 	}
 
 	private class SimulationComparator implements

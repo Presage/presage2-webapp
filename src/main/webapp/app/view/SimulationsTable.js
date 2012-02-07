@@ -10,6 +10,7 @@ Ext.define('Presage2.view.SimulationsTable', {
 				return "--"
 			}
 		};
+
 		var grid = Ext.create('Ext.grid.Panel', {
 			store: 'Simulations',
 			columns: [
@@ -47,6 +48,7 @@ Ext.define('Presage2.view.SimulationsTable', {
 					dataIndex: 'parameters',
 					flex: true,
 					minWidth: 200,
+					sortable: false,
 					renderer: function(value) {
 						var params = "";
 						Ext.Object.each(value, function(key, value) {
@@ -58,13 +60,12 @@ Ext.define('Presage2.view.SimulationsTable', {
 			],
 			region: 'center',
 			split: true,
-			minHeight: 500,
-			bbar: Ext.create('Ext.PagingToolbar', {
-				store: 'Simulations',
-				displayInfo: true,
-				displayMsg: 'Displaying simulations {0} - {1} of {2}',
-				emptyMsg: 'No simulations to display'
-			})
+			verticalScrollerType: 'paginggridscroller',
+			loadMask: true,
+			invalidateScrollerOnRefresh: false,
+			viewConfig: {
+				trackOver: false
+			}
 		})
 		Ext.apply(this, {
 			id: "sims-table",
@@ -75,6 +76,6 @@ Ext.define('Presage2.view.SimulationsTable', {
 			]
 		});
 		this.callParent(arguments);
-
+		Ext.data.StoreManager.lookup('Simulations').guaranteeRange(0, 99);
 	}
 });

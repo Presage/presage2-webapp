@@ -3,17 +3,22 @@ Ext.define('Presage2.store.Simulations', {
 	model: 'Presage2.model.Simulation',
 	storeId: 'simulationStore',
 	proxy: {
-		type: 'ajax',
+		type: 'rest',
 		url: 'simulations',
 		reader: {
 			type: 'json',
-			root: 'simulations',
+			root: 'data',
 			totalProperty: 'totalCount'
+		},
+		writer: {
+			type: 'json'
 		},
 		pageParam: undefined,
 		simpleSortMode: true
 	},
 	autoLoad: true,
+	autoSync: true,
 	remoteSort: true,
-	pageSize: 35
+	pageSize: 100,
+	buffered: true
 });

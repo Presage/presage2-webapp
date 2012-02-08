@@ -1,0 +1,9 @@
+{
+	"plugins": [
+		{
+			"name": "Simulations list",
+			"description": "Lists all stored simulations.",
+			"class": "Presage2.view.SimulationsTable"
+		}
+	]
+}

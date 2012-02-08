@@ -9,8 +9,8 @@ Ext.onReady(function() {
 	Ext.application({
 		name: 'Presage2',
 		autoCreateViewport: true,
-		models: ['Simulation'],
-		stores: ['Simulations'],
+		models: ['Simulation', 'Plugin'],
+		stores: ['Simulations', 'Plugins'],
 		launch: function() {
 		}
 	});

@@ -1,7 +1,7 @@
 Ext.define('Presage2.view.Viewport', {
 	extend: 'Ext.container.Viewport',
 	
-	requires: ['Presage2.view.SimulationsTable'],
+	requires: ['Presage2.view.SimulationsTable', 'Presage2.view.SimulationsDetails'],
 	
 	initComponent: function() {
 		Ext.apply(this, {

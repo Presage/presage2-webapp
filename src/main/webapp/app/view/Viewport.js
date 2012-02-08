@@ -30,6 +30,7 @@ Ext.define('Presage2.view.Viewport', {
 					maxWidth: 400,
 					split: true,
 					collapsible: true,
+					collapsed: true
 				},{
 					id: 'app-portal',
 					region: 'center',

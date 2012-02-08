@@ -17,8 +17,10 @@ Ext.define('Presage2.view.SimulationsTable', {
 			}
 		}
 
+		var simulations = Ext.data.StoreManager.lookup('Simulations');
+
 		var grid = Ext.create('Ext.grid.Panel', {
-			store: 'Simulations',
+			store: simulations,
 			columns: [
 				{text: 'ID', dataIndex: 'id', width: 40},
 				{text: 'Name', dataIndex: 'name', width: 160},
@@ -66,23 +68,27 @@ Ext.define('Presage2.view.SimulationsTable', {
 			],
 			region: 'center',
 			split: true,
-			verticalScrollerType: 'paginggridscroller',
-			loadMask: true,
-			invalidateScrollerOnRefresh: false,
-			viewConfig: {
-				trackOver: false
-			},
 			listeners: {
 				selectionchange: function(model, records) {
 					if (records[0]) {
 						simDetails.getForm().loadRecord(records[0]);
+						simDetails.expand();
 					}
 				}
-			}
+			},
+			dockedItems: [
+				Ext.create('Ext.PagingToolbar', {
+					dock: 'bottom',
+					store: simulations,
+					displayInfo: true,
+					displayMsg: 'Displaying simulations {0} - {1} of {2}',
+					emptyMsg: 'No simulations to display'
+				})
+			]
 		});
 		
 		var simDetails = Ext.create('Ext.form.Panel', {
-			store: 'Simulations',
+			store: simulations,
 			xtype: 'form',
 			title: 'Simulation Details',
 			region: 'south',
@@ -191,6 +197,6 @@ Ext.define('Presage2.view.SimulationsTable', {
 			]
 		});
 		this.callParent(arguments);
-		Ext.data.StoreManager.lookup('Simulations').guaranteeRange(0, 99);
+		simulations.loadPage(1);
 	}
 });

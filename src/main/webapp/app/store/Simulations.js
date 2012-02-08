@@ -19,6 +19,6 @@ Ext.define('Presage2.store.Simulations', {
 	autoLoad: true,
 	autoSync: true,
 	remoteSort: true,
-	pageSize: 100,
+	pageSize: 25,
 	buffered: true
 });

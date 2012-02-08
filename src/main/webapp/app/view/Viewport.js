@@ -1,7 +1,11 @@
 Ext.define('Presage2.view.Viewport', {
 	extend: 'Ext.container.Viewport',
 	
-	requires: ['Presage2.view.SimulationsTable', 'Presage2.view.SimulationsDetails'],
+	requires: [
+		'Presage2.view.SimulationsTable',
+		'Presage2.view.SimulationsDetails',
+		'Presage2.view.PluginSelector'
+	],
 	
 	initComponent: function() {
 		Ext.apply(this, {
@@ -30,7 +34,13 @@ Ext.define('Presage2.view.Viewport', {
 					maxWidth: 400,
 					split: true,
 					collapsible: true,
-					collapsed: true
+					collapsed: false,
+					layout: 'accordion',
+					items: [{
+						title: 'Plugins',
+						xtype: 'plugin-selector'
+					}],
+					dockedItems: []
 				},{
 					id: 'app-portal',
 					region: 'center',

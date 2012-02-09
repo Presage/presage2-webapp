@@ -1,5 +1,5 @@
 Ext.define('Presage2.view.SimulationsDetails', {
-	extend: 'Ext.form.Panel',
+	extend: 'Ext.window.Window',
 	alias: 'widget.simulations-details',
 	store: 'Simulations',
 	requires: ['Presage2.view.ParametersField'],
@@ -8,40 +8,40 @@ Ext.define('Presage2.view.SimulationsDetails', {
 		source: {}
 	}),
 	initComponent: function() {
-		var formatDate = function(value) {
-			if(value > 0) {
-				return Ext.Date.format(new Date(value), "Y-m-d H:i:s");
-			} else {
-				return "--"
+		var me = this;
+		
+		Ext.define('Presage2.view.TimeField', {
+			extend: 'Ext.form.field.Base',
+			alias: 'widget.unixtimefield',
+			disabled: true,
+			valueToRaw: function(value) {
+				if(value > 0) {
+					return Ext.Date.format(new Date(value), "Y-m-d H:i:s");
+				} else {
+					return "--"
+				}
+			},
+			rawToValue: function(raw) {
+				if(raw == "--") {
+					return 0;
+				} else {
+					return new Date(raw).getTime();
+				}
 			}
-		};
-		var formatDateField = function(field, newValue, oldValue) {
-			var timestamp = parseFloat(newValue);
-			if(!isNaN(timestamp) && isFinite(newValue)) {
-				field.setValue(formatDate(timestamp));
-			}
-		}
+		});
 
 		Ext.apply(this, {
-			xtype: 'form',
 			title: 'Simulation Details',
-			split: true,
-			frame: true,
-			height: 260,
-			layout: {
-				type: 'hbox',
-				align: 'stretch'
-			},
-			fieldDefaults: {
-				labelAlign: 'left',
-				msgTarget: 'side'
-			},
+			layout: 'fit',
 			items: [{
-				xtype: 'fieldset',
+				xtype: 'form',
+				fieldDefaults: {
+					labelAlign: 'left',
+					msgTarget: 'side'
+				},
+				bodyStyle: 'padding:5px 5px 0',
+				frame: true,
 				defaultType: 'textfield',
-				flex: 1,
-				bodyPadding: 5,
-				border: 0,
 				items: [{
 					xtype: 'displayfield',
 					fieldLabel: 'ID',
@@ -60,68 +60,62 @@ Ext.define('Presage2.view.SimulationsDetails', {
 					xtype: 'combo',
 					allowBlank: false,
 					store: [
-						'LOADING',
-						'READY',
-						'INITIALISING',
-						'RUNNING',
+						'NOT STARTED',
+						'AUTOSTART',
 						'PAUSED',
 						'STOPPED',
-						'FINISHING',
 						'COMPLETE'
 					]
 				},{
 					fieldLabel: 'Current Time',
 					name: 'currentTime',
-					xtype: 'displayfield',
+					xtype: 'numberfield',
 					value: ''
 				},{
 					fieldLabel: 'Finish Time',
 					name: 'finishTime',
-					xtype: 'displayfield',
+					xtype: 'numberfield',
 					value: ''
 				},{
 					fieldLabel: 'Created',
 					name: 'createdAt',
-					xtype: 'displayfield',
+					xtype: 'unixtimefield',
 					value: '',
-					width: 300,
-					listeners: {
-						change: formatDateField
-					}
+					width: 300
 				},{
 					fieldLabel: 'Started',
 					name: 'startedAt',
-					xtype: 'displayfield',
+					xtype: 'unixtimefield',
 					value: '',
-					width: 300,
-					listeners: {
-						change: formatDateField
-					}
+					width: 300
 				},{
 					fieldLabel: 'Finished',
 					name: 'finishedAt',
-					xtype: 'displayfield',
+					xtype: 'unixtimefield',
 					value: '',
-					width: 300,
-					listeners: {
-						change: formatDateField
-					}
-				}]
-			},{
-				xtype: 'fieldset',
-				defaultType: 'textfield',
-				flex: 1,
-				bodyPadding: 5,
-				border: 0,
-				items: [{
+					width: 300
+				},{
 					xtype: 'parameters-field',
 					name: 'parameters'
+				}],
+				buttons: [{
+					text: 'Save',
+					handler: function() {
+						console.log(me.sim);
+						me.down('form').getForm().updateRecord(me.sim);
+						me.close();
+					}
+				},{
+					text: 'Cancel',
+					handler: function() {
+						me.close();
+					}
 				}]
-			}],
-			listeners: {
-				
-			}
+			}]
 		});
 		this.callParent(arguments);
+		if(this.sim != undefined) {
+			this.down().getForm().loadRecord(this.sim);
+		}
 	}
 });

@@ -69,11 +69,11 @@ Ext.define('Presage2.view.SimulationsTable', {
 			region: 'center',
 			split: true,
 			listeners: {
-				selectionchange: function(model, records) {
-					if (records[0]) {
-						simDetails.getForm().loadRecord(records[0]);
-						simDetails.expand();
-					}
+				itemdblclick: function(model, record) {
+					var simDetails = Ext.create('Presage2.view.SimulationsDetails', {
+						sim: record
+					});
+					simDetails.show();
 				}
 			},
 			dockedItems: [
@@ -86,19 +86,12 @@ Ext.define('Presage2.view.SimulationsTable', {
 				})
 			]
 		});
-		
-		var simDetails = Ext.create('Presage2.view.SimulationsDetails', {
-			region: 'south',
-			animCollapse: true,
-			collapsible: true,
-			collapsed: true,
-		});
 
 		Ext.apply(this, {
 			layout: 'border',
 			frame: true,
 			items: [
-				grid, simDetails
+				grid
 			]
 		});
 		this.callParent(arguments);

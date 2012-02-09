@@ -101,7 +101,6 @@ Ext.define('Presage2.view.SimulationsDetails', {
 				buttons: [{
 					text: 'Save',
 					handler: function() {
-						console.log(me.sim);
 						me.down('form').getForm().updateRecord(me.sim);
 						me.close();
 					}

@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map.Entry;
@@ -58,7 +59,7 @@ public class SimulationServlet extends HttpServlet {
 
 	private final static String[] simulationFields = { "name", "classname",
 			"state", "currentTime", "created", "started", "finished", "id" };
-	
+
 	private final static Pattern ID_REGEX = Pattern.compile("/(\\d+)$");
 
 	@Inject
@@ -78,13 +79,15 @@ public class SimulationServlet extends HttpServlet {
 			throws ServletException, IOException {
 		try {
 			// parse posted simulation json object
-			JSONObject request = new JSONObject(new JSONTokener(req.getReader()));
+			JSONObject request = new JSONObject(
+					new JSONTokener(req.getReader()));
 			// validate data
 			String name = request.getString("name");
 			String classname = request.getString("classname");
 			String state = request.getString("state");
 			int finishTime = request.getInt("finishtime");
-			PersistentSimulation sim = sto.createSimulation(name, classname, state, finishTime);
+			PersistentSimulation sim = sto.createSimulation(name, classname,
+					state, finishTime);
 			resp.setStatus(201);
 			JSONObject response = new JSONObject();
 			response.put("success", true);
@@ -97,7 +100,7 @@ public class SimulationServlet extends HttpServlet {
 			// TODO error JSON
 		}
 	}
-	
+
 	/**
 	 * REST UPDATE simulation
 	 */
@@ -106,33 +109,73 @@ public class SimulationServlet extends HttpServlet {
 			throws ServletException, IOException {
 		String path = req.getPathInfo();
 		Matcher matcher = ID_REGEX.matcher(path);
-		if(matcher.matches()) {
-			// TODO update
+		if (matcher.matches()) {
+			long simId = Integer.parseInt(matcher.group(1));
+			try {
+				// get data sent to us
+				JSONObject input = new JSONObject(new JSONTokener(
+						req.getReader()));
+				// validate fields
+				if (Integer.parseInt(input.get("id").toString()) != simId
+						|| input.getString("state").length() < 1
+						|| input.getInt("currentTime") < 0
+						|| input.getInt("finishTime") < 0) {
+					resp.setStatus(400);
+					return;
+				}
+
+				PersistentSimulation sim = sto.getSimulationById(simId);
+				String state = input.getString("state");
+				if (!(sim.getState().equals(state))) {
+					sim.setState(state);
+				}
+				int currentTime = input.getInt("currentTime");
+				if (!(sim.getCurrentTime() == currentTime)) {
+					sim.setCurrentTime(currentTime);
+				}
+				int finishTime = input.getInt("finishTime");
+				if (!(sim.getFinishTime() == finishTime)) {
+					sim.setCurrentTime(finishTime);
+				}
+				JSONObject parameters = input.getJSONObject("parameters");
+				for (@SuppressWarnings("unchecked")
+				Iterator<String> iterator = parameters.keys(); iterator
+						.hasNext();) {
+					String key = (String) iterator.next();
+					sim.addParameter(key, parameters.getString(key));
+				}
+				JSONObject response = new JSONObject();
+				response.put("success", true);
+				response.put("data", simulationToJSON(sim));
+				resp.getWriter().write(response.toString());
+			} catch (JSONException e) {
+				resp.setStatus(400);
+			}
 		} else {
 			resp.setStatus(400);
 		}
 	}
-	
+
 	@Override
 	protected synchronized void doGet(HttpServletRequest req,
 			HttpServletResponse resp) throws ServletException, IOException {
 		// GET switchboard: route rest gets and get lists to correct function
 		String path = req.getPathInfo();
-		
-		if(path != null) {
+
+		if (path != null) {
 			Matcher matcher = ID_REGEX.matcher(path);
-			if(matcher.matches()) {
+			if (matcher.matches()) {
 				doGetSimulation(req, resp, Long.parseLong(matcher.group(1)));
 				return;
 			}
 		}
 		doListSimulations(req, resp);
 	}
-	
+
 	private void doGetSimulation(HttpServletRequest req,
 			HttpServletResponse resp, long parseLong) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	/**
@@ -218,8 +261,9 @@ public class SimulationServlet extends HttpServlet {
 			return Integer.parseInt(param.toString());
 		}
 	}
-	
-	public static JSONObject simulationToJSON(PersistentSimulation sim) throws JSONException {
+
+	public static JSONObject simulationToJSON(PersistentSimulation sim)
+			throws JSONException {
 		JSONObject jsonSim = new JSONObject();
 		jsonSim.put("id", sim.getID());
 		jsonSim.put("name", sim.getName());
@@ -231,8 +275,7 @@ public class SimulationServlet extends HttpServlet {
 		jsonSim.put("startedAt", sim.getStartedAt());
 		jsonSim.put("finishedAt", sim.getFinishedAt());
 		JSONObject parameters = new JSONObject();
-		for (Entry<String, Object> param : sim.getParameters()
-				.entrySet()) {
+		for (Entry<String, Object> param : sim.getParameters().entrySet()) {
 			parameters.put(param.getKey(), param.getValue().toString());
 		}
 		jsonSim.put("parameters", parameters);

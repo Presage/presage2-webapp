@@ -41,6 +41,7 @@ Ext.define('Presage2.view.ParametersField', {
 									handler: function() {
 										var param = this.up('form').getValues();
 										me.setProperty(param.key, param.value, true);
+										this.up('window').close();
 									}
 								}]
 							}]

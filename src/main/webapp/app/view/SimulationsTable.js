@@ -95,7 +95,6 @@ Ext.define('Presage2.view.SimulationsTable', {
 		});
 
 		Ext.apply(this, {
-			id: "sims-table",
 			layout: 'border',
 			frame: true,
 			items: [

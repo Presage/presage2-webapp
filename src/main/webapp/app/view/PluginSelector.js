@@ -9,16 +9,16 @@ Ext.define('Presage2.view.PluginSelector', {
 				flex: 1,
 				renderer: function(value, p, record) {
 					return Ext.String.format("<b>{0}</b><p>{1}", value, record.data.description);
-				},
-				listeners: {
-					dblclick: function() {
-						// TODO open plugin in new tab.
-						console.log('Dbl click');
-					}
 				}
 			}],
 			hideHeaders: true,
-			width: 200
+			width: 200,
+				listeners: {
+					'itemdblclick': function(dataview, record, item, index) {
+						// fire openplugin event
+						this.fireEvent('openplugin', record); 
+					}
+				}
 		});
 		Ext.data.StoreManager.lookup('Plugins').load();
 		this.callParent(arguments);

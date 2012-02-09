@@ -23,7 +23,6 @@ Ext.define('Presage2.view.SimulationsDetails', {
 		}
 
 		Ext.apply(this, {
-			id: "sims-details",
 			xtype: 'form',
 			title: 'Simulation Details',
 			split: true,

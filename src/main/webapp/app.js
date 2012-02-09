@@ -11,6 +11,7 @@ Ext.onReady(function() {
 		autoCreateViewport: true,
 		models: ['Simulation', 'Plugin'],
 		stores: ['Simulations', 'Plugins'],
+		controllers: ['Plugins'],
 		launch: function() {
 		}
 	});

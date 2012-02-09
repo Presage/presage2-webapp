@@ -42,12 +42,14 @@ Ext.define('Presage2.view.Viewport', {
 					}],
 					dockedItems: []
 				},{
-					id: 'app-portal',
+					id: 'app-tabs',
 					region: 'center',
 					xtype: 'tabpanel',
 					items: [{
-						title: 'Simulations',
-						xtype: 'simulations-table'
+						// simulations list plugin
+						title: 'Simulations List',
+						xtype: 'simulations-table',
+						closable: true
 					}]
 				}]
 			}]

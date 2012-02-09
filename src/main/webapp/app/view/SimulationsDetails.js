@@ -47,13 +47,15 @@ Ext.define('Presage2.view.SimulationsDetails', {
 					fieldLabel: 'ID',
 					name: 'id',
 				},{
+					xtype: 'displayfield',
 					fieldLabel: 'Name',
 					name: 'name',
-					width: 400
+					width: 450
 				},{
+					xtype: 'displayfield',
 					fieldLabel: 'Class name',
 					name: 'classname',
-					width: 500
+					width: 450
 				},{
 					fieldLabel: 'State',
 					name: 'state',

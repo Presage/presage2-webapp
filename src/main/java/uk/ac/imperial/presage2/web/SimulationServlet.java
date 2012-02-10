@@ -50,6 +50,7 @@ import com.google.inject.Singleton;
 @Singleton
 public class SimulationServlet extends HttpServlet {
 
+	private static final int _CACHE_TTL = 10000;
 	private final Logger logger = Logger.getLogger(SimulationServlet.class);
 	private static final long serialVersionUID = 1L;
 	StorageService sto;
@@ -221,7 +222,7 @@ public class SimulationServlet extends HttpServlet {
 		JSONObject jsonResp = new JSONObject();
 		try {
 			// check sim cache (30s ttl)
-			if (this.cachedSimulations == null || this.cacheTime < System.currentTimeMillis() - 30000) {
+			if (this.cachedSimulations == null || this.cacheTime < System.currentTimeMillis() - _CACHE_TTL) {
 				logger.info("Refreshing simulation cache");
 				// update cache from db
 				List<Long> simulationIds = sto.getSimulations();

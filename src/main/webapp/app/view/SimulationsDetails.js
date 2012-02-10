@@ -33,6 +33,7 @@ Ext.define('Presage2.view.SimulationsDetails', {
 		Ext.apply(this, {
 			title: 'Simulation Details',
 			layout: 'fit',
+			y: 200,
 			items: [{
 				xtype: 'form',
 				fieldDefaults: {
@@ -63,7 +64,7 @@ Ext.define('Presage2.view.SimulationsDetails', {
 					allowBlank: false,
 					store: [
 						'NOT STARTED',
-						'AUTOSTART',
+						'AUTO START',
 						'PAUSED',
 						'STOPPED',
 						'COMPLETE'

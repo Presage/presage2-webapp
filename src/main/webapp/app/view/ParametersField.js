@@ -20,6 +20,7 @@ Ext.define('Presage2.view.ParametersField', {
 							title: 'Add Parameter',
 							layout: 'fit',
 							constrain: true,
+							y: 250,
 							renderTo: me.getComponent(),
 							items: [{
 								xtype: 'form',
@@ -57,5 +58,10 @@ Ext.define('Presage2.view.ParametersField', {
 	},
 	getValue: function() {
 		return this.getSource();
+	},
+	getSubmitData: function() {
+		var data = {};
+		data[this.getName()] = this.getValue();
+		return data;
 	}
 });

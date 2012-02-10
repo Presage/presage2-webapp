@@ -85,10 +85,21 @@ public class SimulationServlet extends HttpServlet {
 			String name = request.getString("name");
 			String classname = request.getString("classname");
 			String state = request.getString("state");
-			int finishTime = request.getInt("finishtime");
+			int finishTime = request.getInt("finishTime");
 			PersistentSimulation sim = sto.createSimulation(name, classname,
 					state, finishTime);
 			resp.setStatus(201);
+			if (request.has("parameters")) {
+				JSONObject parameters = request.getJSONObject("parameters");
+				for (@SuppressWarnings("unchecked")
+				Iterator<String> iterator = parameters.keys(); iterator
+						.hasNext();) {
+					String key = (String) iterator.next();
+					sim.addParameter(key, parameters.getString(key));
+				}
+			}
+
+			// return created simulation object
 			JSONObject response = new JSONObject();
 			response.put("success", true);
 			response.put("message", "Created simulation");

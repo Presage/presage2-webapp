@@ -75,7 +75,7 @@ public class SimulationServlet extends HttpServlet {
 	 * REST CREATE simulation
 	 */
 	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+	protected synchronized void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		try {
 			// parse posted simulation json object
@@ -98,6 +98,8 @@ public class SimulationServlet extends HttpServlet {
 					sim.addParameter(key, parameters.getString(key));
 				}
 			}
+			// clear sim cache
+			this.cachedSimulations = null;
 
 			// return created simulation object
 			JSONObject response = new JSONObject();
@@ -116,7 +118,7 @@ public class SimulationServlet extends HttpServlet {
 	 * REST UPDATE simulation
 	 */
 	@Override
-	protected void doPut(HttpServletRequest req, HttpServletResponse resp)
+	protected synchronized void doPut(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		String path = req.getPathInfo();
 		Matcher matcher = ID_REGEX.matcher(path);
@@ -159,6 +161,8 @@ public class SimulationServlet extends HttpServlet {
 				response.put("success", true);
 				response.put("data", simulationToJSON(sim));
 				resp.getWriter().write(response.toString());
+				// clear sim cache
+				this.cachedSimulations = null;
 			} catch (JSONException e) {
 				resp.setStatus(400);
 			}
@@ -168,7 +172,7 @@ public class SimulationServlet extends HttpServlet {
 	}
 
 	@Override
-	protected synchronized void doGet(HttpServletRequest req,
+	protected void doGet(HttpServletRequest req,
 			HttpServletResponse resp) throws ServletException, IOException {
 		// GET switchboard: route rest gets and get lists to correct function
 		String path = req.getPathInfo();
@@ -217,7 +221,7 @@ public class SimulationServlet extends HttpServlet {
 		JSONObject jsonResp = new JSONObject();
 		try {
 			// check sim cache (30s ttl)
-			if (this.cacheTime < System.currentTimeMillis() - 30000) {
+			if (this.cachedSimulations == null || this.cacheTime < System.currentTimeMillis() - 30000) {
 				logger.info("Refreshing simulation cache");
 				// update cache from db
 				List<Long> simulationIds = sto.getSimulations();

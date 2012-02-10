@@ -2,6 +2,7 @@ Ext.define('Presage2.view.SimulationsTable', {
 	extend: 'Ext.Panel',
 	alias: 'widget.simulations-table',
 	store: 'Simulations',
+	requires: ['Presage2.view.ParametersField'],
 	initComponent: function() {
 		var formatDate = function(value) {
 			if(value > 0) {

@@ -277,7 +277,7 @@ public class SimulationServlet extends GenericPresageServlet {
 		jsonSim.put("startedAt", sim.getStartedAt());
 		jsonSim.put("finishedAt", sim.getFinishedAt());
 		JSONObject parameters = new JSONObject();
-		for (Entry<String, Object> param : sim.getParameters().entrySet()) {
+		for (Entry<String, String> param : sim.getParameters().entrySet()) {
 			parameters.put(param.getKey(), param.getValue().toString());
 		}
 		jsonSim.put("parameters", parameters);

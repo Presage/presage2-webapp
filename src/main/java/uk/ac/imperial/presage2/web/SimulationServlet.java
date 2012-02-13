@@ -30,7 +30,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -48,12 +47,11 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class SimulationServlet extends HttpServlet {
+public class SimulationServlet extends GenericPresageServlet {
 
+	private static final long serialVersionUID = 1L;
 	private static final int _CACHE_TTL = 10000;
 	private final Logger logger = Logger.getLogger(SimulationServlet.class);
-	private static final long serialVersionUID = 1L;
-	StorageService sto;
 
 	private List<PersistentSimulation> cachedSimulations = null;
 	private long cacheTime = 0;
@@ -66,18 +64,15 @@ public class SimulationServlet extends HttpServlet {
 	@Inject
 	public SimulationServlet(DatabaseService db, StorageService sto)
 			throws Exception {
-		super();
-		if (!db.isStarted())
-			db.start();
-		this.sto = sto;
+		super(db, sto);
 	}
 
 	/**
 	 * REST CREATE simulation
 	 */
 	@Override
-	protected synchronized void doPost(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
+	protected synchronized void doPost(HttpServletRequest req,
+			HttpServletResponse resp) throws ServletException, IOException {
 		try {
 			// parse posted simulation json object
 			JSONObject request = new JSONObject(
@@ -119,8 +114,8 @@ public class SimulationServlet extends HttpServlet {
 	 * REST UPDATE simulation
 	 */
 	@Override
-	protected synchronized void doPut(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
+	protected synchronized void doPut(HttpServletRequest req,
+			HttpServletResponse resp) throws ServletException, IOException {
 		String path = req.getPathInfo();
 		Matcher matcher = ID_REGEX.matcher(path);
 		if (matcher.matches()) {
@@ -173,8 +168,8 @@ public class SimulationServlet extends HttpServlet {
 	}
 
 	@Override
-	protected void doGet(HttpServletRequest req,
-			HttpServletResponse resp) throws ServletException, IOException {
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+			throws ServletException, IOException {
 		// GET switchboard: route rest gets and get lists to correct function
 		String path = req.getPathInfo();
 
@@ -222,7 +217,8 @@ public class SimulationServlet extends HttpServlet {
 		JSONObject jsonResp = new JSONObject();
 		try {
 			// check sim cache (30s ttl)
-			if (this.cachedSimulations == null || this.cacheTime < System.currentTimeMillis() - _CACHE_TTL) {
+			if (this.cachedSimulations == null
+					|| this.cacheTime < System.currentTimeMillis() - _CACHE_TTL) {
 				logger.info("Refreshing simulation cache");
 				// update cache from db
 				List<Long> simulationIds = sto.getSimulations();
@@ -266,16 +262,6 @@ public class SimulationServlet extends HttpServlet {
 			}
 		}
 
-	}
-
-	private int getIntegerParameter(HttpServletRequest req, String name,
-			int defaultValue) {
-		String param = req.getParameter(name);
-		if (param == null || param == "") {
-			return defaultValue;
-		} else {
-			return Integer.parseInt(param.toString());
-		}
 	}
 
 	public static JSONObject simulationToJSON(PersistentSimulation sim)

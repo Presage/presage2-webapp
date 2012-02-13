@@ -1,3 +1,8 @@
+Ext.require([
+	'Presage2.model.TransientData',
+	'Presage2.model.AgentState'
+]);
+
 Ext.define('Presage2.model.Simulation', {
 	extend: 'Ext.data.Model',
 	fields: [{
@@ -15,6 +20,10 @@ Ext.define('Presage2.model.Simulation', {
 		'finishedAt', 
 		'parameters'
 	],
+	hasMany: {
+		model: 'Presage2.model.TransientData',
+		name: 'timeline'
+	},
 	validations: [{
 		type: 'length',
 		field: 'name',

@@ -37,6 +37,7 @@ public class ServletConfig extends GuiceServletContextListener {
 				super.configureServlets();
 				serve("/simulations").with(SimulationServlet.class);
 				serve("/simulations/*").with(SimulationServlet.class);
+				serve("/simdata").with(SimDataServlet.class);
 			}
 		});
 	}

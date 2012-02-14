@@ -22,7 +22,11 @@ Ext.define('Presage2.model.Simulation', {
 	],
 	hasMany: {
 		model: 'Presage2.model.TransientData',
-		name: 'timeline'
+		name: 'timeline',
+		storeConfig: {
+			pageSize: 100,
+			buffered: true
+		}
 	},
 	validations: [{
 		type: 'length',

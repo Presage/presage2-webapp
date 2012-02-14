@@ -43,17 +43,26 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 				xtype: 'button',
 				text: '|<',
 				itemId: 'startbtn',
-				disabled: true
+				disabled: true,
+				handler: function() {
+					me.fireEvent('setTime', 0);
+				}
 			},{
 				xtype: 'button',
 				text: '<',
 				itemId: 'prevbtn',
-				disabled: true
+				disabled: true,
+				handler: function() {
+					me.fireEvent('setTime', me.currentTime - 1);
+				}
 			},{
 				xtype: 'button',
 				text: '>',
 				itemId: 'nextbtn',
-				disabled: true
+				disabled: true,
+				handler: function() {
+					me.fireEvent('setTime', me.currentTime + 1);
+				}
 			},{
 				xtype: 'button',
 				text: '>|',
@@ -63,7 +72,8 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 				xtype: 'slider',
 				width: 100,
 				value: 0,
-				margin: "5 5 5 15"
+				margin: "5 5 5 15",
+				disabled: true
 			}],
 			enablePanel: function() {
 				this.getComponent('playbtn').enable();
@@ -145,6 +155,7 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 						type: 'vbox',
 						align: 'top'
 					},
+					width: 520,
 					items: [
 						this.drawPanel,
 						this.controls
@@ -154,27 +165,47 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 			}]
 		});
 		this.callParent(arguments);
+
+		this.addListener('setTime', function(newTime) {
+			if(this.sim != undefined) {
+				var totalAvailable = this.sim.timeline().getTotalCount()
+				if(newTime > totalAvailable) {
+					newTime = totalAvailable;
+				}
+				this.currentTime = newTime;
+				this.drawPanel.setTimeStep(newTime);
+				this.controls.setProgress(newTime, totalAvailable);
+
+				// dynamic data loading
+				if(this.maxId - this.currentTime <= 25) {
+					this.sim.timeline().guaranteeRange(this.currentTime, this.currentTime + 100);
+					this.maxId = this.currentTime + 100;
+				}
+			}
+		}, this);
 	},
 	loadSimulationById : function(id) {
 		if(this.sim != null) {
-			//me.sim.timeline().un()
+			this.sim.timeline().un('guaranteedrange', this.onGuaranteedRange);
 		}
 		this.controls.disablePanel();
 		this.controls.setLoading();
 		this.sim = this.store.getById(id);
 		if(this.sim != null) {
 			// initialise controls & load sim data
-			this.sim.timeline().on('load', this.onInitialLoad, this);
-			this.sim.timeline().load({start: 0, limit: 25});
+			this.sim.timeline().on('guaranteedrange', this.onGuaranteedRange, this);
 			this.currentTime = 0;
-			this.maxId = 0;
+			this.sim.timeline().guaranteeRange(0, 25, this.onInitialLoad, this);
 		}
 	},
 	onInitialLoad : function() {
-		this.sim.timeline().un(this.onInitialLoad);
 		this.maxId = 25;
 		console.log(this.sim.timeline().getTotalCount());
 		this.controls.setProgress(0, this.sim.timeline().getTotalCount());
 		this.controls.enablePanel();
+		this.drawPanel.loadSimulation(this.sim.getId());
+	},
+	onGuaranteedRange : function(range, start, end) {
+		this.sim.timeline().loadRecords(range);
 	}
 });

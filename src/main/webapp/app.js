@@ -3,7 +3,8 @@ Ext.Loader.setPath('Presage2', 'app');
 Ext.require([
 	'Presage2.view.Viewport',
 	'Presage2.store.Simulations',
-	'Presage2.store.Plugins'
+	'Presage2.store.Plugins',
+	'Presage2.view.VisualiserPlugin'
 ]);
 
 Ext.onReady(function() {

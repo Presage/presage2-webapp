@@ -16,7 +16,6 @@ Ext.define('Presage2.model.TransientData', {
 			totalProperty: 'totalCount'
 		},
 		pageParam: undefined,
-		batchActions: false,
-		buffered: true
+		batchActions: false
 	}
 });

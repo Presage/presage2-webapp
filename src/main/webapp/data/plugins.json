@@ -4,6 +4,11 @@
 			"name": "Simulations list",
 			"description": "Lists all stored simulations.",
 			"class": "Presage2.view.SimulationsTable"
+		},
+		{
+			"name": "Environment visualiser",
+			"description": "Visualises agents' movements in 2D space.",
+			"class": "Presage2.view.VisualiserPlugin"		
 		}
 	]
 }

@@ -30,7 +30,25 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 				width: 80,
 				margin: 'auto',
 				itemId: 'playbtn',
-				disabled: true
+				disabled: true,
+				handler: function() {
+					// invert playing
+					if(me.controls.playing == undefined) {
+						me.controls.playing = true;
+					} else {
+						me.controls.playing = !me.controls.playing;
+					}
+
+					if(me.controls.playing) {
+						// start
+						this.setText('Pause');
+						me.controls.timeout = setTimeout(me.controls.play, 1000);
+					} else {
+						// stop
+						this.setText('Play');
+						clearTimeout(me.controls.timeout);
+					}
+				}
 			},{
 				xtype: 'progressbar',
 				width: 300,
@@ -101,6 +119,10 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 				var p = this.getComponent('progress');
 				p.setLoading(false);
 				p.updateProgress(current / max, Ext.String.format("{0}/{1}", current, max));
+			},
+			play: function() {
+				me.fireEvent('setTime', me.currentTime + 1);
+				me.controls.timeout = setTimeout(me.controls.play, 1000);
 			}
 		});
 		this.sidemenu = Ext.create('Ext.Panel', {
@@ -171,6 +193,8 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 				var totalAvailable = this.sim.timeline().getTotalCount()
 				if(newTime > totalAvailable) {
 					newTime = totalAvailable;
+				} else if(newTime < 0) {
+					newTime = 0;
 				}
 				this.currentTime = newTime;
 				this.drawPanel.setTimeStep(newTime);

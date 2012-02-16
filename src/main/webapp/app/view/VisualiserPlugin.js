@@ -85,7 +85,10 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 				xtype: 'button',
 				text: '>|',
 				itemId: 'endbtn',
-				disabled: true
+				disabled: true,
+				handler: function() {
+					me.fireEvent('settime', me.sim.timeline().getTotalCount()-1);
+				}
 			},{
 				xtype: 'slider',
 				itemId: 'speed',
@@ -213,8 +216,8 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 			if(this.sim != undefined) {
 				var timeline = this.sim.timeline(),
 					totalAvailable = timeline.getTotalCount();
-				if(newTime > totalAvailable) {
-					newTime = totalAvailable;
+				if(newTime >= totalAvailable) {
+					newTime = totalAvailable-1;
 				} else if(newTime < 0) {
 					newTime = 0;
 				}

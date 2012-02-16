@@ -42,7 +42,7 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 					if(me.controls.playing) {
 						// start
 						this.setText('Pause');
-						me.controls.timeout = setTimeout(me.controls.play, 1000);
+						me.controls.play();
 					} else {
 						// stop
 						this.setText('Play');
@@ -88,10 +88,15 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 				disabled: true
 			},{
 				xtype: 'slider',
+				itemId: 'speed',
 				width: 100,
 				value: 0,
 				margin: "5 5 5 15",
-				disabled: true
+				disabled: true,
+				minValue: 100,
+				maxValue: 1000,
+				increment: 100,
+				value: 1000
 			}],
 			enablePanel: function() {
 				this.getComponent('playbtn').enable();
@@ -100,6 +105,7 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 				this.getComponent('prevbtn').enable();
 				this.getComponent('nextbtn').enable();
 				this.getComponent('endbtn').enable();
+				this.getComponent('speed').enable();
 			},
 			disablePanel: function() {
 				this.getComponent('playbtn').disable();
@@ -108,6 +114,7 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 				this.getComponent('prevbtn').disable();
 				this.getComponent('nextbtn').disable();
 				this.getComponent('endbtn').disable();
+				this.getComponent('speed').disable();
 			},
 			setLoading: function() {
 				this.getComponent('progress').setLoading(true);
@@ -121,8 +128,22 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 				p.updateProgress(current / max, Ext.String.format("{0}/{1}", current, max));
 			},
 			play: function() {
+				if(!me.controls.playing) {
+					clearTimeout(me.controls.timeout);
+					return;
+				}
+				if(me.currentTime == me.sim.timeline().getTotalCount()) {
+					me.controls.pause();
+				}
 				me.fireEvent('setTime', me.currentTime + 1);
-				me.controls.timeout = setTimeout(me.controls.play, 1000);
+				me.controls.timeout = setTimeout(me.controls.play, me.controls.getPlayPeriod());
+			},
+			pause: function() {
+				var playBtn = this.getComponent('playbtn');
+				playBtn.handler.call(playBtn, playBtn, Ext.EventObject);
+			},
+			getPlayPeriod: function() {
+				return this.getComponent('speed').getValue();
 			}
 		});
 		this.sidemenu = Ext.create('Ext.Panel', {
@@ -190,20 +211,34 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 
 		this.addListener('setTime', function(newTime) {
 			if(this.sim != undefined) {
-				var totalAvailable = this.sim.timeline().getTotalCount()
+				var timeline = this.sim.timeline(),
+					totalAvailable = timeline.getTotalCount();
 				if(newTime > totalAvailable) {
 					newTime = totalAvailable;
 				} else if(newTime < 0) {
 					newTime = 0;
 				}
-				this.currentTime = newTime;
-				this.drawPanel.setTimeStep(newTime);
-				this.controls.setProgress(newTime, totalAvailable);
+				// check for availability of this data
+				if(timeline.getById(newTime) == null) {
+					var start = newTime;
+					if(start < 50) {
+						start = 0;
+					} else if(totalAvailable - start < 100) {
+						start = Math.max(totalAvailable - 100, 0);
+					}
+					timeline.guaranteeRange(start, start + 100, function() {
+						this.fireEvent('setTime', newTime);
+					}, this);
+				} else {
+					this.currentTime = newTime;
+					this.drawPanel.setTimeStep(newTime);
+					this.controls.setProgress(newTime, totalAvailable);
 
-				// dynamic data loading
-				if(this.maxId - this.currentTime <= 25) {
-					this.sim.timeline().guaranteeRange(this.currentTime, this.currentTime + 100);
-					this.maxId = this.currentTime + 100;
+					// dynamic data loading
+					if(this.maxId - this.currentTime <= 25) {
+						this.sim.timeline().guaranteeRange(this.currentTime, this.currentTime + 100);
+						this.maxId = this.currentTime + 100;
+					}
 				}
 			}
 		}, this);

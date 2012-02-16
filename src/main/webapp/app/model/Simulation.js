@@ -24,7 +24,7 @@ Ext.define('Presage2.model.Simulation', {
 		model: 'Presage2.model.TransientData',
 		name: 'timeline',
 		storeConfig: {
-			pageSize: 100,
+			pageSize: 50,
 			buffered: true
 		}
 	},

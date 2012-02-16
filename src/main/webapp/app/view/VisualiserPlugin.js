@@ -7,6 +7,7 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 	alias: 'widget.visualiserplugin',
 	initComponent: function() {
 		var me = this;
+		this.pageSize = 50;
 		this.store = Ext.data.StoreManager.lookup('Simulations');
 		this.drawPanel = Ext.create('Presage2.view.2DVisualiser', {
 			layout: 'fit',
@@ -224,12 +225,12 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 				// check for availability of this data
 				if(timeline.getById(newTime) == null) {
 					var start = newTime;
-					if(start < 50) {
+					if(start < this.pageSize / 2) {
 						start = 0;
-					} else if(totalAvailable - start < 100) {
-						start = Math.max(totalAvailable - 100, 0);
+					} else if(totalAvailable - start < this.pageSize) {
+						start = Math.max(totalAvailable - this.pageSize, 0);
 					}
-					timeline.guaranteeRange(start, start + 100, function() {
+					timeline.guaranteeRange(start, start + this.pageSize -1, function() {
 						this.fireEvent('setTime', newTime);
 					}, this);
 				} else {
@@ -239,8 +240,8 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 
 					// dynamic data loading
 					if(this.maxId - this.currentTime <= 25) {
-						this.sim.timeline().guaranteeRange(this.currentTime, this.currentTime + 100);
-						this.maxId = this.currentTime + 100;
+						this.sim.timeline().guaranteeRange(this.currentTime, this.currentTime + this.pageSize -1);
+						this.maxId = this.currentTime + this.pageSize;
 					}
 				}
 			}
@@ -257,11 +258,11 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 			// initialise controls & load sim data
 			this.sim.timeline().on('guaranteedrange', this.onGuaranteedRange, this);
 			this.currentTime = 0;
-			this.sim.timeline().guaranteeRange(0, 25, this.onInitialLoad, this);
+			this.sim.timeline().guaranteeRange(0, this.pageSize-1, this.onInitialLoad, this);
 		}
 	},
 	onInitialLoad : function() {
-		this.maxId = 25;
+		this.maxId = this.pageSize;
 		console.log(this.sim.timeline().getTotalCount());
 		this.controls.setProgress(0, this.sim.timeline().getTotalCount());
 		this.controls.enablePanel();

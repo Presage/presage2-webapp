@@ -11,11 +11,11 @@ Ext.define('Presage2.controller.Plugins', {
 		});
 	},
 	openPlugin: function(plugin) {
-		Ext.ComponentManager.get('app-tabs').add(
-			Ext.create(plugin.data.class, {
-				title: plugin.data.name,
-				closable: true
-			})
-		);
+		var plugin = Ext.create(plugin.data.class, {
+			title: plugin.data.name,
+			closable: true
+		}), tabbar = Ext.ComponentManager.get('app-tabs');
+		tabbar.add(plugin);
+		tabbar.setActiveTab(plugin);
 	}
 });

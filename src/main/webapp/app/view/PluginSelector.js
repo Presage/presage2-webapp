@@ -20,7 +20,17 @@ Ext.define('Presage2.view.PluginSelector', {
 					}
 				}
 		});
-		Ext.data.StoreManager.lookup('Plugins').load();
+		Ext.data.StoreManager.lookup('Plugins').load({
+			scope: this,
+			callback: function(records, operation, success) {
+				// preload all plugins
+				var plugins = []
+				Ext.Array.each(records, function(record) {
+					plugins.push(record.data.class);
+				});
+				Ext.require(plugins);
+			}
+		});
 		this.callParent(arguments);
 	}
 });

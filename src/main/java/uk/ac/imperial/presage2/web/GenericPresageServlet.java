@@ -21,6 +21,8 @@ package uk.ac.imperial.presage2.web;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.log4j.Logger;
+
 import com.google.inject.Inject;
 
 import uk.ac.imperial.presage2.core.db.DatabaseService;
@@ -29,6 +31,7 @@ import uk.ac.imperial.presage2.core.db.StorageService;
 public abstract class GenericPresageServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
+	private final Logger logger = Logger.getLogger(GenericPresageServlet.class);
 	protected StorageService sto;
 
 	@Inject
@@ -48,6 +51,10 @@ public abstract class GenericPresageServlet extends HttpServlet {
 		} else {
 			return Integer.parseInt(param.toString());
 		}
+	}
+
+	protected void logRequest(HttpServletRequest req) {
+		logger.info("GET " + req.getRequestURI() + "?" + req.getQueryString());
 	}
 
 }

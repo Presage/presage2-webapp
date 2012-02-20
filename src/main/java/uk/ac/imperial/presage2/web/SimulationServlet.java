@@ -73,6 +73,7 @@ public class SimulationServlet extends GenericPresageServlet {
 	@Override
 	protected synchronized void doPost(HttpServletRequest req,
 			HttpServletResponse resp) throws ServletException, IOException {
+		logRequest(req);
 		try {
 			// parse posted simulation json object
 			JSONObject request = new JSONObject(
@@ -116,6 +117,7 @@ public class SimulationServlet extends GenericPresageServlet {
 	@Override
 	protected synchronized void doPut(HttpServletRequest req,
 			HttpServletResponse resp) throws ServletException, IOException {
+		logRequest(req);
 		String path = req.getPathInfo();
 		Matcher matcher = ID_REGEX.matcher(path);
 		if (matcher.matches()) {
@@ -170,6 +172,7 @@ public class SimulationServlet extends GenericPresageServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
+		logRequest(req);
 		// GET switchboard: route rest gets and get lists to correct function
 		String path = req.getPathInfo();
 
@@ -211,7 +214,6 @@ public class SimulationServlet extends GenericPresageServlet {
 		} else if (direction == null || direction.isEmpty()) {
 			direction = "ASC";
 		}
-		logger.info("GET " + req.getRequestURI() + "?" + req.getQueryString());
 
 		// init response object
 		JSONObject jsonResp = new JSONObject();

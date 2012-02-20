@@ -20,14 +20,11 @@ package uk.ac.imperial.presage2.web;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,9 +40,7 @@ import com.google.inject.Singleton;
 @Singleton
 public class SimDataServlet extends GenericPresageServlet {
 
-	private final Logger logger = Logger.getLogger(SimDataServlet.class);
 	private static final long serialVersionUID = 1L;
-	private final static Pattern ID_REGEX = Pattern.compile("/(\\d+)$");
 
 	@Inject
 	public SimDataServlet(DatabaseService db, StorageService sto)
@@ -56,6 +51,7 @@ public class SimDataServlet extends GenericPresageServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
+		logRequest(req);
 		// find simid parameter
 		long simId = 0;
 		if (req.getParameter("filter") != null) {

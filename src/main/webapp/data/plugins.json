@@ -9,6 +9,11 @@
 			"name": "Environment visualiser",
 			"description": "Visualises agents' movements in 2D space.",
 			"class": "Presage2.view.VisualiserPlugin"		
+		},
+		{
+			"name": "Simulations Tree",
+			"description": "Tree view of simulations.",
+			"class": "Presage2.view.SimulationsTree"
 		}
 	]
 }

@@ -31,7 +31,8 @@ import uk.ac.imperial.presage2.core.db.StorageService;
 public abstract class GenericPresageServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-	private final Logger logger = Logger.getLogger(GenericPresageServlet.class);
+	protected final Logger logger = Logger.getLogger(this.getClass()
+			.getCanonicalName());
 	protected StorageService sto;
 
 	@Inject

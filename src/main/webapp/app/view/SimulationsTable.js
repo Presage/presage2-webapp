@@ -1,3 +1,5 @@
+Ext.require('Presage2.store.SimulationsTree');
+
 Ext.define('Presage2.view.SimulationsTable', {
 	extend: 'Ext.Panel',
 	alias: 'widget.simulations-table',
@@ -162,6 +164,5 @@ Ext.define('Presage2.view.SimulationsTable', {
 			]
 		});
 		this.callParent(arguments);
-		simulations.loadPage(1);
 	}
 });

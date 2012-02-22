@@ -11,7 +11,7 @@ Ext.onReady(function() {
 		name: 'Presage2',
 		autoCreateViewport: true,
 		models: ['Simulation', 'Plugin', 'TransientData', 'AgentState'],
-		stores: ['Simulations', 'Plugins'],
+		stores: ['Simulations', 'Plugins', 'SimulationsTree'],
 		controllers: ['Plugins'],
 		launch: function() {
 		}

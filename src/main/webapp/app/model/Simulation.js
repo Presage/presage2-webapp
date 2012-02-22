@@ -40,5 +40,17 @@ Ext.define('Presage2.model.Simulation', {
 		type: 'length',
 		field: 'state',
 		min: 1
-	}]
+	}],
+	proxy: {
+		type: 'rest',
+		url: 'simulations',
+		reader: {
+			type: 'json',
+			root: 'data',
+			totalProperty: 'totalCount'
+		},
+		writer: {
+			type: 'json'
+		}
+	}
 });

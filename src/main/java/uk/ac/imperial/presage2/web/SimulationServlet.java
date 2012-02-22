@@ -107,7 +107,7 @@ public class SimulationServlet extends GenericPresageServlet {
 		} catch (JSONException e) {
 			// bad request
 			resp.setStatus(400);
-			// TODO error JSON
+			logger.warn("Couldn't create new simulation", e);
 		}
 	}
 
@@ -187,9 +187,22 @@ public class SimulationServlet extends GenericPresageServlet {
 	}
 
 	private void doGetSimulation(HttpServletRequest req,
-			HttpServletResponse resp, long parseLong) {
-		// TODO Auto-generated method stub
-
+			HttpServletResponse resp, long simId) throws IOException {
+		if (simId > 0) {
+			JSONObject jsonResp = new JSONObject();
+			try {
+				jsonResp.put("success", true);
+				jsonResp.put("data",
+						simulationToJSON(sto.getSimulationById(simId)));
+				resp.getWriter().write(jsonResp.toString());
+			} catch (JSONException e) {
+				resp.setStatus(500);
+			} catch (NullPointerException e) {
+				resp.setStatus(400);
+			}
+		} else {
+			resp.setStatus(400);
+		}
 	}
 
 	/**
@@ -283,6 +296,14 @@ public class SimulationServlet extends GenericPresageServlet {
 			parameters.put(param.getKey(), param.getValue());
 		}
 		jsonSim.put("parameters", parameters);
+		// for tree representations
+		if (sim.getChildren().size() == 0
+				&& !sim.getState().equalsIgnoreCase("GROUP")) {
+			jsonSim.put("leaf", true);
+		} else {
+			jsonSim.put("leaf", false);
+			jsonSim.put("expanded", false);
+		}
 		return jsonSim;
 	}
 

@@ -12,6 +12,10 @@ Ext.define('Presage2.view.SimulationsTree', {
 			simulationsTree.getRootNode().removeAll();
 			simulationsTree.load();
 		});
+		simulations.on('update', function() {
+			simulationsTree.getRootNode().removeAll();
+			simulationsTree.load();
+		});
 		// auto sync changes back to rest proxy
 		simulationsTree.on('move', function() {
 			simulationsTree.sync();
@@ -54,6 +58,18 @@ Ext.define('Presage2.view.SimulationsTree', {
 						return Ext.String.format('{0}/{1}', record.data.currentTime, record.data.finishTime);
 					},
 					flex: 1
+				},{
+					text: 'Parameters',
+					dataIndex: 'parameters',
+					flex: 4,
+					sortable: false,
+					renderer: function(value) {
+						var params = "";
+						Ext.Object.each(value, function(key, value) {
+							params += Ext.String.format('<span class="parameter">{0}:{1}</span>', key, value);
+						});
+						return params;
+					}
 				}],
 				listeners: {
 					itemdblclick: function(model, record) {
@@ -121,6 +137,18 @@ Ext.define('Presage2.view.SimulationsTree', {
 									}]
 								}]
 							}).show();
+						}
+					},
+					'-',
+					'->',
+					{
+						itemId: 'refresh',
+						tooltip: 'Refresh',
+						overflowText: 'Refresh',
+						iconCls: Ext.baseCSSPrefix + 'tbar-loading',
+						handler: function() {
+							simulationsTree.getRootNode().removeAll();
+							simulationsTree.load();
 						}
 					}]
 				}]

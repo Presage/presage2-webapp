@@ -91,7 +91,7 @@ Ext.define('Presage2.view.SimulationsTree', {
 					dock: 'top',
 					items: [{
 						text: 'New Group',
-						iconCls: 'folder',
+						iconCls: Ext.baseCSSPrefix +'tree-icon-parent',
 						tooltop: 'Add a new group',
 						handler: function() {
 							Ext.create('Ext.window.Window', {

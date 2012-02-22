@@ -91,7 +91,7 @@ Ext.define('Presage2.view.SimulationsTable', {
 					dock: 'top',
 					items: [{
 						text: 'New Simulation',
-						//iconCls: 'add',
+						iconCls: Ext.baseCSSPrefix +'tree-icon-leaf',
 						tooltop: 'Add a new simulation',
 						handler: function() {
 							Ext.create('Ext.window.Window', {

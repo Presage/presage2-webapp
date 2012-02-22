@@ -35,11 +35,9 @@ public class ServletConfig extends GuiceServletContextListener {
 			@Override
 			protected void configureServlets() {
 				super.configureServlets();
-				serve("/simulations").with(SimulationServlet.class);
-				serve("/simulations/*").with(SimulationServlet.class);
-				serve("/simdata").with(SimDataServlet.class);
-				serve("/simulationstree").with(SimulationsTreeServlet.class);
-				serve("/simulationstree/*").with(SimulationsTreeServlet.class);
+				serve("/simulations/tree*").with(SimulationsTreeServlet.class);
+				serve("/simulations/data").with(SimDataServlet.class);
+				serve("/simulations*").with(SimulationServlet.class);
 			}
 		});
 	}

@@ -3,7 +3,7 @@ Ext.define('Presage2.store.SimulationsTree', {
 	model: 'Presage2.model.Simulation',
 	proxy: {
 		type: 'rest',
-		url: 'simulationstree',
+		url: '/simulations/tree',
 		root: 'data'
 	},
 	defaultRootProperty: 'data',

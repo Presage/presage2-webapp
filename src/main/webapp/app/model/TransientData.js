@@ -9,7 +9,7 @@ Ext.define('Presage2.model.TransientData', {
 	},
 	proxy: {
 		type: 'ajax',
-		url: '/simdata',
+		url: '/simulations/data',
 		reader: {
 			type: 'json',
 			root: 'data',

@@ -55,7 +55,8 @@ public abstract class GenericPresageServlet extends HttpServlet {
 	}
 
 	protected void logRequest(HttpServletRequest req) {
-		logger.info("GET " + req.getRequestURI() + "?" + req.getQueryString());
+		logger.info(req.getMethod() + " " + req.getRequestURI() + "?"
+				+ req.getQueryString());
 	}
 
 }

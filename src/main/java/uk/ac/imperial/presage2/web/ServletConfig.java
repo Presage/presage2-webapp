@@ -38,6 +38,8 @@ public class ServletConfig extends GuiceServletContextListener {
 				serve("/simulations").with(SimulationServlet.class);
 				serve("/simulations/*").with(SimulationServlet.class);
 				serve("/simdata").with(SimDataServlet.class);
+				serve("/simulationstree").with(SimulationsTreeServlet.class);
+				serve("/simulationstree/*").with(SimulationsTreeServlet.class);
 			}
 		});
 	}

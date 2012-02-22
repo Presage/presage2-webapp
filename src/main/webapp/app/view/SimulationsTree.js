@@ -7,9 +7,14 @@ Ext.define('Presage2.view.SimulationsTree', {
 		var simulations = Ext.data.StoreManager.lookup('Simulations'),
 			simulationsTree = Ext.data.StoreManager.lookup('SimulationsTree');
 
+		// reload tree when something is changed in simulation store
 		simulations.on('write', function() {
 			simulationsTree.getRootNode().removeAll();
 			simulationsTree.load();
+		});
+		// auto sync changes back to rest proxy
+		simulationsTree.on('move', function() {
+			simulationsTree.sync();
 		});
 
 		Ext.apply(this, {

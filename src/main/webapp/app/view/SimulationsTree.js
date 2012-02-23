@@ -38,7 +38,7 @@ Ext.define('Presage2.view.SimulationsTree', {
 					xtype: 'treecolumn',
 					text: 'ID', 
 					dataIndex: 'id',
-					flex: 0.5
+					flex: 1
 				},{
 					text: 'Name',
 					flex: 2,
@@ -61,7 +61,7 @@ Ext.define('Presage2.view.SimulationsTree', {
 				},{
 					text: 'Parameters',
 					dataIndex: 'parameters',
-					flex: 4,
+					flex: 3.5,
 					sortable: false,
 					renderer: function(value) {
 						var params = "";

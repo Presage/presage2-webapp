@@ -28,13 +28,30 @@ Ext.define('Presage2.view.SimulationsTable', {
 		var grid = Ext.create('Ext.grid.Panel', {
 			store: simulations,
 			columns: [
-				{text: 'ID', dataIndex: 'id', width: 40},
-				{text: 'Name', dataIndex: 'name', width: 160},
-				{text: 'Class name', dataIndex: 'classname', width: 300},
-				{text: 'State', dataIndex: 'state'},
+				{
+					text: 'ID',
+					dataIndex: 'id',
+					flex: 0.4
+				},
+				{
+					text: 'Name',
+					dataIndex: 'name',
+					felx: 1
+				},
+				{
+					text: 'Class name',
+					dataIndex: 'classname',
+					flex: 3
+				},
+				{
+					text: 'State',
+					dataIndex: 'state',
+					flex: 1
+				},
 				{
 					text: 'Progress', 
 					dataIndex: 'currentTime',
+					flex: 0.8,
 					renderer: function(value, cell, record) {
 						return Ext.String.format('{0}/{1}', record.data.currentTime, record.data.finishTime);
 					}
@@ -42,25 +59,25 @@ Ext.define('Presage2.view.SimulationsTable', {
 				{
 					text: 'Created',
 					dataIndex: 'createdAt',
-					width: 120,
+					flex: 1.5,
 					renderer: formatDate
 				},
 				{
 					text: 'Started',
 					dataIndex: 'startedAt',
-					width: 120,
+					flex: 1.5,
 					renderer: formatDate
 				},
 				{
 					text: 'Finished',
 					dataIndex: 'finishedAt',
-					width: 120,
+					flex: 1.5,
 					renderer: formatDate
 				},
 				{
 					text: 'Parameters',
 					dataIndex: 'parameters',
-					flex: true,
+					flex: 4,
 					minWidth: 200,
 					sortable: false,
 					renderer: function(value) {

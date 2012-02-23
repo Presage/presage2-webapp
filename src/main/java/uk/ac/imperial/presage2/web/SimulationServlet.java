@@ -99,6 +99,14 @@ public class SimulationServlet extends GenericPresageServlet {
 					sim.addParameter(key, parameters.getString(key));
 				}
 			}
+			// set simulation parent
+			if (request.has("parent")) {
+				long parentId = request.getLong("parent");
+				PersistentSimulation parent = sto.getSimulationById(parentId);
+				if (parent != null)
+					sim.setParentSimulation(parent);
+			}
+
 			// clear sim cache
 			this.cachedSimulations = null;
 
@@ -159,6 +167,18 @@ public class SimulationServlet extends GenericPresageServlet {
 					String key = (String) iterator.next();
 					sim.addParameter(key, parameters.getString(key));
 				}
+				// parent simulation
+				long parentId = input.getLong("parent");
+				PersistentSimulation parent = sim.getParentSimulation();
+				if (parentId == 0 && parent != null) {
+					sim.setParentSimulation(null);
+				} else if (parentId > 0 && parent.getID() != parentId) {
+					parent = sto.getSimulationById(parentId);
+					if (parent != null) {
+						sim.setParentSimulation(parent);
+					}
+				}
+
 				JSONObject response = new JSONObject();
 				response.put("success", true);
 				response.put("data", simulationToJSON(sim));
@@ -308,6 +328,10 @@ public class SimulationServlet extends GenericPresageServlet {
 			jsonSim.put("leaf", false);
 			jsonSim.put("expanded", false);
 		}
+		// parent
+		PersistentSimulation parent = sim.getParentSimulation();
+		jsonSim.put("parent", parent != null ? parent.getID() : 0L);
+
 		return jsonSim;
 	}
 

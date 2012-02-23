@@ -18,7 +18,12 @@ Ext.define('Presage2.model.Simulation', {
 		'createdAt', 
 		'startedAt', 
 		'finishedAt', 
-		'parameters'
+		'parameters',
+		{
+			name: 'parent',
+			type: 'long',
+			useNull: false
+		}
 	],
 	hasMany: {
 		model: 'Presage2.model.TransientData',

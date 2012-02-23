@@ -46,6 +46,13 @@ Ext.define('Presage2.view.NewSimulation', {
 			name: 'classname',
 			minLength: 1,
 			value: me.group ? 'group' : ''
+		},{
+			xtype: 'combo',
+			name: 'parent',
+			fieldLabel: 'Parent',
+			store: me.store,
+			displayField: 'id',
+			valueField: 'id'
 		}]);
 		if(!me.group) {
 			me.formPanel.add({

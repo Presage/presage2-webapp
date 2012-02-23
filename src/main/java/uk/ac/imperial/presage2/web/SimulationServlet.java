@@ -86,6 +86,10 @@ public class SimulationServlet extends GenericPresageServlet {
 			PersistentSimulation sim = sto.createSimulation(name, classname,
 					state, finishTime);
 			resp.setStatus(201);
+			if (!state.equalsIgnoreCase("GROUP")) {
+				// add finishTime as a parameter
+				sim.addParameter("finishTime", Integer.toString(finishTime));
+			}
 			if (request.has("parameters")) {
 				JSONObject parameters = request.getJSONObject("parameters");
 				for (@SuppressWarnings("unchecked")

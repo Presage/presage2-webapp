@@ -73,13 +73,8 @@ Ext.define('Presage2.view.SimulationsTree', {
 				}],
 				listeners: {
 					itemdblclick: function(model, record) {
-						Presage2.model.Simulation.load(record.getId(), {
-							success: function(r, op) {
-								var simDetails = Ext.create('Presage2.view.SimulationsDetails', {
-									sim: r
-								});
-								simDetails.show();
-							}
+						Ext.create('Presage2.view.SimulationsDetails', {
+							simId: record.getId()
 						});
 					},
 					update: function() {

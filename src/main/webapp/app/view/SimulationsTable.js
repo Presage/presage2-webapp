@@ -93,10 +93,9 @@ Ext.define('Presage2.view.SimulationsTable', {
 			split: true,
 			listeners: {
 				itemdblclick: function(model, record) {
-					var simDetails = Ext.create('Presage2.view.SimulationsDetails', {
-						sim: record
+					Ext.create('Presage2.view.SimulationsDetails', {
+						simId: record.getId()
 					});
-					simDetails.show();
 				}
 			},
 			dockedItems: [

@@ -119,8 +119,17 @@ Ext.define('Presage2.view.SimulationsDetails', {
 			}]
 		});
 		this.callParent(arguments);
+
+		Presage2.model.Simulation.load(me.simId, {
+			scope: me,
+			success: me.loadSimulation
+		});
+	},
+	loadSimulation: function(r, op) {
+		this.sim = r;
 		if(this.sim != undefined) {
 			this.down().getForm().loadRecord(this.sim);
 		}
+		this.show();
 	}
 });

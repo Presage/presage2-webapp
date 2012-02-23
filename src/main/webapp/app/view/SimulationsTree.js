@@ -90,56 +90,22 @@ Ext.define('Presage2.view.SimulationsTree', {
 					xtype: 'toolbar',
 					dock: 'top',
 					items: [{
-						text: 'New Group',
-						iconCls: Ext.baseCSSPrefix +'tree-icon-parent',
-						tooltop: 'Add a new group',
+						text: 'New Simulation',
+						iconCls: Ext.baseCSSPrefix +'tree-icon-leaf',
+						tooltop: 'Add a new simulation',
 						handler: function() {
-							Ext.create('Ext.window.Window', {
-								title: 'New Simulation',
-								layout: 'fit',
-								y: 200,
-								items: [{
-									xtype: 'form',
-									bodyStyle: 'padding:5px 5px 0',
-									frame: true,
-									items: [{
-										xtype: 'textfield',
-										fieldLabel: 'Name',
-										name: 'name',
-										minLength: 1
-									},{
-										xtype: 'textfield',
-										fieldLabel: 'Class name',
-										name: 'classname',
-										minLength: 1,
-										value: 'folder'
-									}],
-									buttons: [{
-										text: 'Save',
-										handler: function() {
-											var form = this.up('form').getValues();
-											form.id = null;
-											form.state = "GROUP";
-											form.finishTime = 0;
-											form.currentTime = 0;
-											form.createdAt = 0;
-											form.startedAt = 0;
-											form.finishedAt = 0;
-											form.parameters = {};
-											simulations.add(form);
-											this.up('window').close();
-										}
-									},{
-										text: 'Cancel',
-										handler: function() {
-											this.up('window').close();
-										}
-									}]
-								}]
-							}).show();
+							Ext.create('Presage2.view.NewSimulation').show();
 						}
 					},
 					'-',
+					{
+						text: 'New Group',
+						iconCls: Ext.baseCSSPrefix +'tree-icon-parent',
+						tooltop: 'Add a new simulation group',
+						handler: function() {
+							Ext.create('Presage2.view.NewSimulation', {group: true}).show();
+						}
+					},
 					'->',
 					{
 						itemId: 'refresh',

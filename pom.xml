@@ -24,12 +24,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>uk.ac.imperial.presage2</groupId>
-			<artifactId>presage2-mongodb</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
 			<version>20090211</version>

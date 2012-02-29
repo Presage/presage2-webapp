@@ -33,7 +33,7 @@ public abstract class GenericPresageServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	protected final Logger logger = Logger.getLogger(this.getClass()
 			.getCanonicalName());
-	protected StorageService sto;
+	protected final StorageService sto;
 
 	@Inject
 	protected GenericPresageServlet(DatabaseService db, StorageService sto)

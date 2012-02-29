@@ -25,7 +25,9 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.TimerTask;
 import java.util.Map.Entry;
+import java.util.Timer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,6 +41,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import uk.ac.imperial.presage2.core.cli.run.ExecutorManager;
 import uk.ac.imperial.presage2.core.db.DatabaseService;
 import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
@@ -61,10 +64,38 @@ public class SimulationServlet extends GenericPresageServlet {
 
 	private final static Pattern ID_REGEX = Pattern.compile("/(\\d+)$");
 
+	private final ExecutorManager executorManager;
+
 	@Inject
-	public SimulationServlet(DatabaseService db, StorageService sto)
-			throws Exception {
+	public SimulationServlet(DatabaseService db, StorageService sto,
+			ExecutorManager execManager) throws Exception {
 		super(db, sto);
+		this.executorManager = execManager;
+		this.executorManager.start();
+		Timer executorSubmittor = new Timer("executor-submittor", true);
+
+		executorSubmittor.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				synchronized (SimulationServlet.this) {
+					ensureCache();
+					for (PersistentSimulation sim : cachedSimulations) {
+						if (sim.getState().equalsIgnoreCase("AUTO START")) {
+							logger.info("Submitting simulation " + sim.getID()
+									+ " to executor.");
+							executorManager.addSimulation(sim.getID());
+						}
+					}
+				}
+			}
+		}, 1000, 30000);
+	}
+
+	@Override
+	protected void finalize() throws Throwable {
+		// notify executor manager of shutdown
+		this.executorManager.addSimulation(0);
+		super.finalize();
 	}
 
 	/**
@@ -255,19 +286,8 @@ public class SimulationServlet extends GenericPresageServlet {
 		// init response object
 		JSONObject jsonResp = new JSONObject();
 		try {
-			// check sim cache (30s ttl)
-			if (this.cachedSimulations == null
-					|| this.cacheTime < System.currentTimeMillis() - _CACHE_TTL) {
-				logger.info("Refreshing simulation cache");
-				// update cache from db
-				List<Long> simulationIds = sto.getSimulations();
-				this.cachedSimulations = new ArrayList<PersistentSimulation>(
-						simulationIds.size());
-				for (Long simId : simulationIds) {
-					this.cachedSimulations.add(sto.getSimulationById(simId));
-				}
-				this.cacheTime = System.currentTimeMillis();
-			}
+			this.ensureCache();
+
 			jsonResp.put("totalCount", this.cachedSimulations.size());
 
 			// sort simulations
@@ -333,6 +353,25 @@ public class SimulationServlet extends GenericPresageServlet {
 		jsonSim.put("parent", parent != null ? parent.getID() : 0L);
 
 		return jsonSim;
+	}
+
+	/**
+	 * Check the validity of the simulation cache and update it if neccessary.
+	 */
+	private void ensureCache() {
+		// check sim cache (30s ttl)
+		if (this.cachedSimulations == null
+				|| this.cacheTime < System.currentTimeMillis() - _CACHE_TTL) {
+			logger.info("Refreshing simulation cache");
+			// update cache from db
+			List<Long> simulationIds = sto.getSimulations();
+			this.cachedSimulations = new ArrayList<PersistentSimulation>(
+					simulationIds.size());
+			for (Long simId : simulationIds) {
+				this.cachedSimulations.add(sto.getSimulationById(simId));
+			}
+			this.cacheTime = System.currentTimeMillis();
+		}
 	}
 
 	private class SimulationComparator implements

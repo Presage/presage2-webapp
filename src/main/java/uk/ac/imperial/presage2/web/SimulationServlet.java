@@ -132,10 +132,15 @@ public class SimulationServlet extends GenericPresageServlet {
 			}
 			// set simulation parent
 			if (request.has("parent")) {
-				long parentId = request.getLong("parent");
-				PersistentSimulation parent = sto.getSimulationById(parentId);
-				if (parent != null)
-					sim.setParentSimulation(parent);
+				try {
+					long parentId = request.getLong("parent");
+					PersistentSimulation parent = sto
+							.getSimulationById(parentId);
+					if (parent != null)
+						sim.setParentSimulation(parent);
+				} catch (JSONException e) {
+					// ignore non number parent.
+				}
 			}
 
 			// clear sim cache
@@ -199,15 +204,18 @@ public class SimulationServlet extends GenericPresageServlet {
 					sim.addParameter(key, parameters.getString(key));
 				}
 				// parent simulation
-				long parentId = input.getLong("parent");
-				PersistentSimulation parent = sim.getParentSimulation();
-				if (parentId == 0 && parent != null) {
-					sim.setParentSimulation(null);
-				} else if (parentId > 0 && parent.getID() != parentId) {
-					parent = sto.getSimulationById(parentId);
-					if (parent != null) {
-						sim.setParentSimulation(parent);
+				try {
+					long parentId = input.getLong("parent");
+					PersistentSimulation parent = sim.getParentSimulation();
+					if (parentId == 0 && parent != null) {
+						sim.setParentSimulation(null);
+					} else if (parentId > 0 && parent.getID() != parentId) {
+						parent = sto.getSimulationById(parentId);
+						if (parent != null) {
+							sim.setParentSimulation(parent);
+						}
 					}
+				} catch (JSONException e) {
 				}
 
 				JSONObject response = new JSONObject();

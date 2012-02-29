@@ -18,6 +18,7 @@
  */
 package uk.ac.imperial.presage2.web;
 
+import uk.ac.imperial.presage2.core.cli.run.ExecutorModule;
 import uk.ac.imperial.presage2.core.db.DatabaseModule;
 
 import com.google.inject.Guice;
@@ -30,16 +31,23 @@ public class ServletConfig extends GuiceServletContextListener {
 	@Override
 	protected Injector getInjector() {
 
-		return Guice.createInjector(DatabaseModule.load(), new ServletModule() {
+		DatabaseModule db = DatabaseModule.load();
+		if (db == null) {
+			throw new RuntimeException(
+					"Cannot start webapp without database connection.");
+		}
+		return Guice.createInjector(db, ExecutorModule.load(),
+				new ServletModule() {
 
-			@Override
-			protected void configureServlets() {
-				super.configureServlets();
-				serve("/simulations/tree*").with(SimulationsTreeServlet.class);
-				serve("/simulations/data").with(SimDataServlet.class);
-				serve("/simulations*").with(SimulationServlet.class);
-			}
-		});
+					@Override
+					protected void configureServlets() {
+						super.configureServlets();
+						serve("/simulations/tree*").with(
+								SimulationsTreeServlet.class);
+						serve("/simulations/data").with(SimDataServlet.class);
+						serve("/simulations*").with(SimulationServlet.class);
+					}
+				});
 	}
 
 }

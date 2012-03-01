@@ -92,10 +92,15 @@ public class SimulationServlet extends GenericPresageServlet {
 	}
 
 	@Override
-	protected void finalize() throws Throwable {
+	public void destroy() {
 		// notify executor manager of shutdown
+		logger.debug("Sending shutdown to executor manager.");
 		this.executorManager.addSimulation(0);
-		super.finalize();
+		try {
+			this.executorManager.join();
+		} catch (InterruptedException e) {
+		}
+		super.destroy();
 	}
 
 	/**

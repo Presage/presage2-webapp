@@ -1,5 +1,5 @@
 /**
- * 	Copyright (C) 2011 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+ * 	Copyright (C) 2011-2012 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
  *
  * 	This file is part of Presage2.
  *
@@ -20,6 +20,7 @@ package uk.ac.imperial.presage2.web;
 
 import uk.ac.imperial.presage2.core.cli.run.ExecutorModule;
 import uk.ac.imperial.presage2.core.db.DatabaseModule;
+import uk.ac.imperial.presage2.web.export.DataExportServlet;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -46,6 +47,7 @@ public class ServletConfig extends GuiceServletContextListener {
 								SimulationsTreeServlet.class);
 						serve("/simulations/data").with(SimDataServlet.class);
 						serve("/simulations*").with(SimulationServlet.class);
+						serve("/export").with(DataExportServlet.class);
 					}
 				});
 	}

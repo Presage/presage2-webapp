@@ -74,6 +74,8 @@ abstract class ColumnDefinition {
 			Set<PersistentSimulation> sources) throws JSONException {
 		if (column.getString(JSON_TYPE_KEY).equalsIgnoreCase("ENV")) {
 			return new EnvironmentPropertyColumn(column, sources);
+		} else if (column.getString(JSON_TYPE_KEY).equalsIgnoreCase("AGENT")) {
+			return new AgentPropertyColumn(column, sources);
 		} else {
 			throw new JSONException("Invalid column type: '"
 					+ column.getString(JSON_TYPE_KEY));

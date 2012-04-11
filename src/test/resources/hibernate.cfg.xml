@@ -1,0 +1,61 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+
+    	Copyright (C) 2011-2012 Sam Macbeth <sm1106 [at] imperial [dot] ac [dot] uk>
+
+    	This file is part of Presage2.
+
+        Presage2 is free software: you can redistribute it and/or modify
+        it under the terms of the GNU Lesser Public License as published by
+        the Free Software Foundation, either version 3 of the License, or
+        (at your option) any later version.
+
+        Presage2 is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU Lesser Public License for more details.
+
+        You should have received a copy of the GNU Lesser Public License
+        along with Presage2.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+
+	<session-factory>
+
+		<!-- Database connection settings -->
+		<property name="connection.driver_class">org.h2.Driver</property>
+		<property name="connection.url">jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;MVCC=TRUE</property>
+		<property name="connection.username">sa</property>
+		<property name="connection.password"></property>
+
+		<!-- JDBC connection pool (use the built-in) -->
+		<property name="connection.pool_size">1</property>
+
+		<!-- SQL dialect -->
+		<property name="dialect">org.hibernate.dialect.H2Dialect</property>
+
+		<!-- Disable the second-level cache -->
+		<property name="cache.provider_class">org.hibernate.cache.NoCacheProvider</property>
+
+		<!-- Echo all executed SQL to stdout -->
+		<property name="show_sql">false</property>
+
+		<!-- Drop and re-create the database schema on startup -->
+		<property name="hbm2ddl.auto">create</property>
+
+		<!-- Names the annotated entity class -->
+		<mapping class="uk.ac.imperial.presage2.db.hibernate.Simulation" />
+		<mapping class="uk.ac.imperial.presage2.db.hibernate.Agent" />
+		<mapping class="uk.ac.imperial.presage2.db.hibernate.Parameter" />
+		<mapping class="uk.ac.imperial.presage2.db.hibernate.AgentProperty" />
+		<mapping class="uk.ac.imperial.presage2.db.hibernate.EnvironmentProperty" />
+		<mapping class="uk.ac.imperial.presage2.db.hibernate.AgentState" />
+
+	</session-factory>
+
+</hibernate-configuration>

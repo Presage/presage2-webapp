@@ -129,7 +129,7 @@ public class TestDataExport {
 		count.put("property", "test");
 		count.put("function", "COUNT");
 		inputJson.put("columns", new JSONArray(new JSONObject[] { min, max,
-				mean }));
+				mean, count }));
 
 		logger.info("Test json input: " + inputJson.toString());
 
@@ -256,7 +256,7 @@ public class TestDataExport {
 		count.put("property", "test");
 		count.put("function", "COUNT");
 		inputJson.put("columns", new JSONArray(new JSONObject[] { min, max,
-				mean }));
+				mean, count }));
 
 		logger.info("Test json input: " + inputJson.toString());
 
@@ -311,4 +311,138 @@ public class TestDataExport {
 		}
 	}
 
+	@Test
+	public void testTransientAgentPropertyWithCondition() throws JSONException {
+		Random rand = new Random();
+
+		// prepare test data
+		logger.info("Creating conditioned TransientAgentProperty test data set");
+		int simCount = rand.nextInt(9) + 1;
+		long[] simIds = new long[simCount];
+
+		// expectations of test data.
+		int[] expectedCount1 = new int[100];
+		int[] expectedCount2 = new int[100];
+		Arrays.fill(expectedCount2, 0);
+		int[] expectedCount3 = new int[100];
+		Arrays.fill(expectedCount3, 0);
+
+		for (int s = 0; s < simCount; s++) {
+			int finishAt = 1 + rand.nextInt(99);
+			int agentCount = 1 + rand.nextInt(20);
+			PersistentSimulation sim = sto.createSimulation("Test", "test",
+					"TEST", finishAt);
+			sto.setSimulation(sim);
+			sim.setCurrentTime(finishAt);
+			Set<PersistentAgent> agents = new HashSet<PersistentAgent>();
+			for (int a = 0; a < agentCount; a++) {
+				PersistentAgent ag = sto.createAgent(
+						uk.ac.imperial.presage2.core.util.random.Random
+								.randomUUID(), "agent" + a);
+				agents.add(ag);
+				boolean test = rand.nextBoolean();
+				ag.setProperty("testA", Boolean.toString(test));
+				if (test) {
+					for(int j=0; j< finishAt; j++) {
+						expectedCount1[j]++;
+					}
+				}
+			}
+			for (int i = 0; i < finishAt; i++) {
+				for (PersistentAgent a : agents) {
+					int datapoint = rand.nextInt(100);
+
+					a.getState(i).setProperty("test",
+							Integer.toString(datapoint));
+					if (datapoint > 50)
+						expectedCount2[i]++;
+					if (datapoint <= 75
+							&& a.getProperty("testA").equalsIgnoreCase("true"))
+						expectedCount3[i]++;
+				}
+			}
+			simIds[s] = sim.getID();
+			logger.info("Sim " + sim.getID() + ", " + finishAt + " steps, "
+					+ agentCount + " agents.");
+		}
+
+		// prepare input JSON
+		JSONObject inputJson = new JSONObject();
+		inputJson.put("sources", new JSONArray(simIds));
+		inputJson.put("type", "TRANSIENT");
+
+		JSONObject test1 = new JSONObject();
+		test1.put("type", "AGENT");
+		test1.put("property", "test");
+		test1.put("function", "COUNT");
+		JSONObject test1Condition = new JSONObject();
+		test1Condition.put("testA", true);
+		test1.put("condition", test1Condition);
+
+		JSONObject test2 = new JSONObject();
+		test2.put("type", "AGENT");
+		test2.put("property", "test");
+		test2.put("function", "COUNT");
+		JSONObject test2Condition = new JSONObject(
+				"{\"$t\":{\"test\":{\"$gt\":50}}}");
+		test2.put("condition", test2Condition);
+
+		JSONObject test3 = new JSONObject();
+		test3.put("type", "AGENT");
+		test3.put("property", "test");
+		test3.put("function", "COUNT");
+		JSONObject test3Condition = new JSONObject();
+		test3Condition.put("testA", true);
+		test3Condition.put("$t", new JSONObject("{\"test\":{\"$lte\":75}}"));
+		test3.put("condition", test3Condition);
+
+		inputJson.put("columns", new JSONArray(new JSONObject[] { test1, test2,
+				test3 }));
+
+		logger.info("Test json input: " + inputJson.toString());
+
+		// test servlet
+		Iterable<Iterable<String>> actual = servletUnderTest
+				.processRequest(inputJson);
+
+		// check expectations
+		int row = -1;
+		int col = 0;
+		for (Iterable<String> iterable : actual) {
+			logger.info("Test results row: " + row);
+			for (String string : iterable) {
+				if (row == -1) {
+					switch (col) {
+					case 0:
+						assertEquals("timestep", string);
+						break;
+					}
+				} else {
+					switch (col) {
+					// timestep col
+					case 0:
+						assertEquals(row, Integer.parseInt(string));
+						break;
+					// min col
+					case 1:
+						assertEquals(expectedCount1[row], Integer.parseInt(string));
+						break;
+					// max col
+					case 2:
+						assertEquals(expectedCount2[row],
+								Integer.parseInt(string));
+						break;
+					// mean col
+					case 3:
+						assertEquals(expectedCount3[row],
+								Integer.parseInt(string));
+						break;
+					}
+				}
+				col++;
+			}
+			col = 0;
+			row++;
+		}
+	}
 }

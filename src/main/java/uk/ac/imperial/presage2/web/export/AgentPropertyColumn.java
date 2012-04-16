@@ -21,6 +21,7 @@ package uk.ac.imperial.presage2.web.export;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.json.JSONException;
@@ -28,10 +29,14 @@ import org.json.JSONObject;
 
 import uk.ac.imperial.presage2.core.db.persistent.PersistentAgent;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
+import uk.ac.imperial.presage2.web.export.condition.RootCondition;
 
 public class AgentPropertyColumn extends ColumnDefinition {
 
+	final static String JSON_CONDITION_KEY = "condition";
+
 	List<PersistentAgent> agents;
+	final RootCondition condition;
 
 	AgentPropertyColumn(JSONObject column, Set<PersistentSimulation> sources)
 			throws JSONException {
@@ -43,6 +48,21 @@ public class AgentPropertyColumn extends ColumnDefinition {
 		agents = new LinkedList<PersistentAgent>();
 		for (PersistentSimulation sim : sources) {
 			agents.addAll(sim.getAgents());
+		}
+		if (column.has(JSON_CONDITION_KEY)) {
+			condition = new RootCondition(
+					column.getJSONObject(JSON_CONDITION_KEY));
+		} else {
+			condition = null;
+		}
+		// filter agents
+		if (condition != null) {
+			Iterator<PersistentAgent> it = agents.iterator();
+			while (it.hasNext()) {
+				Map<String, String> agentProperties = it.next().getProperties();
+				if (!condition.testStatic(agentProperties))
+					it.remove();
+			}
 		}
 	}
 
@@ -63,12 +83,19 @@ public class AgentPropertyColumn extends ColumnDefinition {
 			private Number getNext() {
 				if (sourceIterator.hasNext()) {
 					PersistentAgent current = sourceIterator.next();
-					String prop = current.getState(t).getProperty(property);
-					if (prop == null)
+					Map<String, String> agentProperties = current.getState(t)
+							.getProperties();
+					// check transient conditions.
+					if (condition != null
+							&& !condition.testTransient(agentProperties)) {
+						return getNext();
+					}
+					if (!agentProperties.containsKey(property))
 						return getNext();
 					else {
 						try {
-							return Double.parseDouble(prop);
+							return Double.parseDouble(agentProperties
+									.get(property));
 						} catch (NumberFormatException e) {
 							return getNext();
 						}

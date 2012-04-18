@@ -20,10 +20,13 @@ package uk.ac.imperial.presage2.web.export;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import javax.servlet.ServletException;
@@ -161,21 +164,30 @@ public class DataExportServlet extends GenericPresageServlet {
 		}
 
 		// check type
-
-		String typeName = query.getString("type");
-		if (typeName.equalsIgnoreCase("transient")) {
-
-			JSONArray columns = query.getJSONArray("columns");
-			ColumnDefinition[] columnDefs = new ColumnDefinition[columns
-					.length()];
-			for (int i = 0; i < columns.length(); i++) {
-				columnDefs[i] = ColumnDefinition.createColumn(
-						columns.getJSONObject(i), sourceSims);
-			}
-
-			return new IterableTable(new TimeColumn(sourceSims), columnDefs);
+		JSONArray parametersJSON = query.getJSONArray("parameters");
+		boolean timeSeries = false;
+		List<IndependentVariable> vars = new ArrayList<IndependentVariable>(
+				parametersJSON.length());
+		for (int i = 0; i < parametersJSON.length(); i++) {
+			if (parametersJSON.getString(i).equalsIgnoreCase("time"))
+				timeSeries = true;
+			else
+				vars.add(new ParameterColumn(sourceSims, parametersJSON
+						.getString(i)));
 		}
-		throw new JSONException("Unknown type.");
+
+		JSONArray columns = query.getJSONArray("columns");
+		ColumnDefinition[] columnDefs = new ColumnDefinition[columns.length()];
+		for (int i = 0; i < columns.length(); i++) {
+			columnDefs[i] = ColumnDefinition.createColumn(
+					columns.getJSONObject(i), timeSeries);
+			columnDefs[i].setSources(sourceSims);
+		}
+
+		TimeColumn time = timeSeries ? new TimeColumn(sourceSims) : null;
+		return new IterableTable(vars.toArray(new IndependentVariable[] {}),
+				time, sourceSims, columnDefs);
+
 	}
 
 	/**
@@ -212,44 +224,127 @@ public class DataExportServlet extends GenericPresageServlet {
 	 */
 	private class IterableTable implements Iterable<Iterable<String>> {
 
-		final IndependentVariable independentVar;
+		final IndependentVariable[] independentVars;
+		final TimeColumn time;
+		final Set<PersistentSimulation> sources;
 		final ColumnDefinition[] dependentVars;
 
-		IterableTable(IndependentVariable independentVar,
+		IterableTable(IndependentVariable[] independentVars, TimeColumn time,
+				Set<PersistentSimulation> sources,
 				ColumnDefinition... dependentVars) {
 			super();
-			this.independentVar = independentVar;
+			this.independentVars = independentVars;
+			this.time = time;
+			this.sources = sources;
 			this.dependentVars = dependentVars;
 		}
 
 		@Override
 		public Iterator<Iterable<String>> iterator() {
-			if (independentVar == null || dependentVars == null)
+			if (dependentVars == null
+					|| dependentVars.length == 0
+					|| (time == null && (independentVars == null || independentVars.length == 0)))
 				return null;
+
+			// initialise iterators
+			@SuppressWarnings("unchecked")
+			final Iterator<String>[] inputs = (Iterator<String>[]) new Iterator[independentVars.length];
+			for (int i = 0; i < independentVars.length; i++) {
+				inputs[i] = independentVars[i].iterator();
+			}
+			final String[] currentValues = new String[independentVars.length];
 
 			return new Iterator<Iterable<String>>() {
 
 				boolean header = true;
-				Iterator<String> input = independentVar.iterator();
+				Set<PersistentSimulation> currentSources;
+				Iterator<String> timeIterator = time != null ? time.iterator()
+						: null;
 
 				@Override
 				public boolean hasNext() {
-					return header || input.hasNext();
+					if (header)
+						return header;
+					for (Iterator<String> it : inputs) {
+						if (it.hasNext())
+							return true;
+					}
+					return timeIterator != null && timeIterator.hasNext();
 				}
 
 				@Override
 				public Iterable<String> next() {
 					// return next row
 					List<String> row = new LinkedList<String>();
+					// header row
 					if (header) {
-						row.add(independentVar.getName());
+						for (int i = 0; i < independentVars.length; i++) {
+							row.add(independentVars[i].getName());
+						}
+						if (time != null) {
+							row.add(time.getName());
+						}
 						for (int i = 0; i < dependentVars.length; i++) {
 							row.add(dependentVars[i].getName());
 						}
 						header = false;
 					} else {
-						String in = input.next();
-						row.add(in);
+						// data rows
+						boolean sourceChange = false;
+						if (currentValues.length == 0
+								|| currentValues[0] == null) {
+							// first pass, get current values from each iterator
+							for (int i = 0; i < inputs.length; i++) {
+								if (!inputs[i].hasNext())
+									throw new NoSuchElementException(
+											"Parameter "
+													+ independentVars[i]
+															.getName()
+													+ " has no values in provided sources.");
+								currentValues[i] = inputs[i].next();
+							}
+							sourceChange = true;
+						} else if (timeIterator == null
+								|| !timeIterator.hasNext()) {
+							// if timeseries and have completed pass
+							// reset time iterator
+							timeIterator = time != null ? time.iterator()
+									: null;
+							for (int i = 0; i < inputs.length; i++) {
+								if (inputs[i].hasNext()) {
+									currentValues[i] = inputs[i].next();
+									break;
+								} else {
+									inputs[i] = independentVars[i].iterator();
+									currentValues[i] = inputs[i].next();
+								}
+							}
+							sourceChange = true;
+						}
+
+						if (sourceChange) {
+							// if the input set has changed we recalculate the
+							// sources to the columns.
+							currentSources = new HashSet<PersistentSimulation>(
+									sources);
+							for (int i = 0; i < independentVars.length; i++) {
+								currentSources = independentVars[i]
+										.getMatchingSubset(currentValues[i],
+												currentSources);
+							}
+							currentSources = Collections
+									.unmodifiableSet(currentSources);
+							for (ColumnDefinition col : dependentVars) {
+								col.setSources(currentSources);
+							}
+						}
+
+						for (int i = 0; i < currentValues.length; i++) {
+							row.add(currentValues[i]);
+						}
+						String in = time != null ? timeIterator.next() : "";
+						if (time != null)
+							row.add(in);
 						for (int i = 0; i < dependentVars.length; i++) {
 							row.add(dependentVars[i].getColumnValue(in));
 						}
@@ -262,6 +357,5 @@ public class DataExportServlet extends GenericPresageServlet {
 				}
 			};
 		}
-
 	}
 }

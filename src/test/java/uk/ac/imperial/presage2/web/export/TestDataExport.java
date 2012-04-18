@@ -22,7 +22,9 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -111,7 +113,7 @@ public class TestDataExport {
 		// prepare input JSON
 		JSONObject inputJson = new JSONObject();
 		inputJson.put("sources", new JSONArray(simIds));
-		inputJson.put("type", "TRANSIENT");
+		inputJson.put("parameters", new JSONArray(new String[] { "time" }));
 		JSONObject min = new JSONObject();
 		min.put("type", "ENV");
 		min.put("property", "test");
@@ -238,7 +240,7 @@ public class TestDataExport {
 		// prepare input JSON
 		JSONObject inputJson = new JSONObject();
 		inputJson.put("sources", new JSONArray(simIds));
-		inputJson.put("type", "TRANSIENT");
+		inputJson.put("parameters", new JSONArray(new String[] { "time" }));
 		JSONObject min = new JSONObject();
 		min.put("type", "AGENT");
 		min.put("property", "test");
@@ -343,7 +345,7 @@ public class TestDataExport {
 				boolean test = rand.nextBoolean();
 				ag.setProperty("testA", Boolean.toString(test));
 				if (test) {
-					for(int j=0; j< finishAt; j++) {
+					for (int j = 0; j < finishAt; j++) {
 						expectedCount1[j]++;
 					}
 				}
@@ -369,7 +371,7 @@ public class TestDataExport {
 		// prepare input JSON
 		JSONObject inputJson = new JSONObject();
 		inputJson.put("sources", new JSONArray(simIds));
-		inputJson.put("type", "TRANSIENT");
+		inputJson.put("parameters", new JSONArray(new String[] { "time" }));
 
 		JSONObject test1 = new JSONObject();
 		test1.put("type", "AGENT");
@@ -425,7 +427,8 @@ public class TestDataExport {
 						break;
 					// min col
 					case 1:
-						assertEquals(expectedCount1[row], Integer.parseInt(string));
+						assertEquals(expectedCount1[row],
+								Integer.parseInt(string));
 						break;
 					// max col
 					case 2:
@@ -443,6 +446,89 @@ public class TestDataExport {
 			}
 			col = 0;
 			row++;
+		}
+	}
+
+	@Test
+	public void testIndependentVariables() throws JSONException {
+		Random rand = new Random();
+
+		// prepare test data
+		logger.info("Creating testIndependentVariables data set");
+		int simCount = 10;
+		long[] simIds = new long[simCount];
+		Map<String, Map<String, Integer>> expected = new HashMap<String, Map<String, Integer>>();
+
+		for (int s = 0; s < simCount; s++) {
+			int finishAt = 100;
+			PersistentSimulation sim = sto.createSimulation("Test", "test",
+					"TEST", finishAt);
+			sim.setCurrentTime(finishAt);
+			String x = Integer.toString(s % 4);
+			String y = (s < 5) ? "a" : "b";
+			sim.addParameter("x", x);
+			sim.addParameter("y", y);
+			PersistentEnvironment env = sim.getEnvironment();
+			int datapoint = rand.nextInt(100);
+			env.setProperty("test", Integer.toString(datapoint));
+			if (!expected.containsKey(x)) {
+				expected.put(x, new HashMap<String, Integer>());
+			}
+			if (!expected.get(x).containsKey(y)) {
+				expected.get(x).put(y, datapoint);
+			} else {
+				expected.get(x).put(y, expected.get(x).get(y) + datapoint);
+			}
+			simIds[s] = sim.getID();
+			logger.info("Sim " + sim.getID() + ", " + finishAt + " steps.");
+		}
+
+		JSONObject inputJson = new JSONObject();
+		inputJson.put("sources", new JSONArray(simIds));
+		inputJson.put("parameters", new JSONArray(new String[] { "x", "y" }));
+
+		JSONObject test1 = new JSONObject();
+		test1.put("type", "ENV");
+		test1.put("property", "test");
+		test1.put("function", "SUM");
+
+		inputJson.put("columns", new JSONArray(new JSONObject[] { test1 }));
+
+		logger.info("Test json input: " + inputJson.toString());
+
+		// test servlet
+		Iterable<Iterable<String>> actual = servletUnderTest
+				.processRequest(inputJson);
+
+		int row = -1;
+		int col = 0;
+		for (Iterable<String> iterable : actual) {
+			logger.info("Test results row: " + row);
+			logger.info(iterable.toString());
+			String x = null;
+			String y = null;
+			for (String string : iterable) {
+				if (row > -1) {
+					switch (col) {
+					// x col
+					case 0:
+						x = string;
+						break;
+					// y col
+					case 1:
+						y = string;
+						break;
+					// sum col
+					case 2:
+						assertEquals(expected.get(x).get(y).intValue(),
+								Integer.parseInt(string));
+						break;
+					}
+					col++;
+				}
+				col = 0;
+				row++;
+			}
 		}
 	}
 }

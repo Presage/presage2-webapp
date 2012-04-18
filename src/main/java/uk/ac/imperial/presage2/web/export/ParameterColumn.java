@@ -18,40 +18,44 @@
  */
 package uk.ac.imperial.presage2.web.export;
 
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
 
-/**
- * An independent variable in a table.
- * 
- * @author Sam Macbeth
- * 
- */
-abstract class IndependentVariable implements Iterable<String> {
+class ParameterColumn extends IndependentVariable {
 
-	final String name;
+	final Set<String> values;
 
-	IndependentVariable(String name) {
-		super();
-		this.name = name;
+	ParameterColumn(Set<PersistentSimulation> sources, String property) {
+		super(property);
+		values = new HashSet<String>();
+		for (PersistentSimulation sim : sources) {
+			Map<String, String> params = sim.getParameters();
+			if (params.containsKey(property)
+					&& !values.contains(params.get(property)))
+				values.add(params.get(property));
+		}
 	}
 
-	String getName() {
-		return name;
+	@Override
+	public Iterator<String> iterator() {
+		return values.iterator();
 	}
 
-	/**
-	 * Get a subset of <code>sources</code> which match the given
-	 * <code>value</code> for this field.
-	 * 
-	 * @param value
-	 * @param sources
-	 * @return
-	 */
+	@Override
 	Set<PersistentSimulation> getMatchingSubset(String value,
 			Set<PersistentSimulation> sources) {
-		return sources;
+		Set<PersistentSimulation> subset = new HashSet<PersistentSimulation>();
+		for (PersistentSimulation sim : sources) {
+			Map<String, String> params = sim.getParameters();
+			if (params.containsKey(name)
+					&& params.get(name).equalsIgnoreCase(value))
+				subset.add(sim);
+		}
+		return subset;
 	}
 
 }

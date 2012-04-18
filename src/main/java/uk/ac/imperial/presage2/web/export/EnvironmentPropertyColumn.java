@@ -19,7 +19,6 @@
 package uk.ac.imperial.presage2.web.export;
 
 import java.util.Iterator;
-import java.util.Set;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,18 +34,19 @@ import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
  */
 public class EnvironmentPropertyColumn extends ColumnDefinition {
 
-	EnvironmentPropertyColumn(JSONObject column,
-			Set<PersistentSimulation> sources) throws JSONException {
-		super(sources, ColumnType.ENVIRONMENT_PROPERTY, column.optString(
-				JSON_NAME_KEY, column.getString(JSON_PROPERTY_KEY) + "-"
+	EnvironmentPropertyColumn(JSONObject column, boolean timeSeries)
+			throws JSONException {
+		super(ColumnType.ENVIRONMENT_PROPERTY, column.optString(
+				JSON_NAME_KEY,
+				column.getString(JSON_PROPERTY_KEY) + "-"
 						+ column.getString(JSON_FUNCTION_KEY)), column
 				.getString(JSON_PROPERTY_KEY), GroupFunction.get(column
-				.getString(JSON_FUNCTION_KEY)));
+				.getString(JSON_FUNCTION_KEY)), timeSeries);
 	}
 
 	@Override
 	public String getColumnValue(String... inputs) {
-		final int t = Integer.parseInt(inputs[0]);
+		final int t = timeSeries ? Integer.parseInt(inputs[0]) : 0;
 		final Iterator<PersistentSimulation> sourceIterator = this.sources
 				.iterator();
 
@@ -61,8 +61,9 @@ public class EnvironmentPropertyColumn extends ColumnDefinition {
 			Number getNext() {
 				if (sourceIterator.hasNext()) {
 					PersistentSimulation current = sourceIterator.next();
-					String prop = current.getEnvironment().getProperty(
-							property, t);
+					String prop = timeSeries ? current.getEnvironment()
+							.getProperty(property, t) : current
+							.getEnvironment().getProperty(property);
 					if (prop == null)
 						return getNext();
 					else {

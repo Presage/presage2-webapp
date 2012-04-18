@@ -38,22 +38,28 @@ public class AgentPropertyColumn extends ColumnDefinition {
 	List<PersistentAgent> agents;
 	final RootCondition condition;
 
-	AgentPropertyColumn(JSONObject column, Set<PersistentSimulation> sources)
+	AgentPropertyColumn(JSONObject column, boolean timeSeries)
 			throws JSONException {
-		super(sources, ColumnType.AGENT_PROPERTY, column.optString(
-				JSON_NAME_KEY, column.getString(JSON_PROPERTY_KEY) + "-"
+		super(ColumnType.AGENT_PROPERTY, column.optString(
+				JSON_NAME_KEY,
+				column.getString(JSON_PROPERTY_KEY) + "-"
 						+ column.getString(JSON_FUNCTION_KEY)), column
 				.getString(JSON_PROPERTY_KEY), GroupFunction.get(column
-				.getString(JSON_FUNCTION_KEY)));
-		agents = new LinkedList<PersistentAgent>();
-		for (PersistentSimulation sim : sources) {
-			agents.addAll(sim.getAgents());
-		}
+				.getString(JSON_FUNCTION_KEY)), timeSeries);
 		if (column.has(JSON_CONDITION_KEY)) {
 			condition = new RootCondition(
 					column.getJSONObject(JSON_CONDITION_KEY));
 		} else {
 			condition = null;
+		}
+	}
+
+	@Override
+	void setSources(Set<PersistentSimulation> sources) {
+		super.setSources(sources);
+		agents = new LinkedList<PersistentAgent>();
+		for (PersistentSimulation sim : sources) {
+			agents.addAll(sim.getAgents());
 		}
 		// filter agents
 		if (condition != null) {

@@ -37,7 +37,7 @@ abstract class ColumnDefinition {
 		ENVIRONMENT_PROPERTY, AGENT_PROPERTY
 	};
 
-	final Set<PersistentSimulation> sources;
+	Set<PersistentSimulation> sources;
 
 	final ColumnType type;
 
@@ -47,19 +47,21 @@ abstract class ColumnDefinition {
 
 	final GroupFunction function;
 
+	final boolean timeSeries;
+
 	final static String JSON_TYPE_KEY = "type";
 	final static String JSON_NAME_KEY = "name";
 	final static String JSON_PROPERTY_KEY = "property";
 	final static String JSON_FUNCTION_KEY = "function";
 
-	ColumnDefinition(Set<PersistentSimulation> sources, ColumnType type,
-			String name, String property, GroupFunction function) {
+	ColumnDefinition(ColumnType type, String name, String property,
+			GroupFunction function, boolean timeSeries) {
 		super();
-		this.sources = sources;
 		this.type = type;
 		this.name = name;
 		this.property = property;
 		this.function = function;
+		this.timeSeries = timeSeries;
 	}
 
 	/**
@@ -70,12 +72,12 @@ abstract class ColumnDefinition {
 	 * @return
 	 * @throws JSONException
 	 */
-	static ColumnDefinition createColumn(JSONObject column,
-			Set<PersistentSimulation> sources) throws JSONException {
+	static ColumnDefinition createColumn(JSONObject column, boolean timeSeries)
+			throws JSONException {
 		if (column.getString(JSON_TYPE_KEY).equalsIgnoreCase("ENV")) {
-			return new EnvironmentPropertyColumn(column, sources);
+			return new EnvironmentPropertyColumn(column, timeSeries);
 		} else if (column.getString(JSON_TYPE_KEY).equalsIgnoreCase("AGENT")) {
-			return new AgentPropertyColumn(column, sources);
+			return new AgentPropertyColumn(column, timeSeries);
 		} else {
 			throw new JSONException("Invalid column type: '"
 					+ column.getString(JSON_TYPE_KEY));
@@ -87,6 +89,14 @@ abstract class ColumnDefinition {
 	 */
 	String getName() {
 		return name;
+	}
+
+	/**
+	 * @param sources
+	 *            the sources to set
+	 */
+	void setSources(Set<PersistentSimulation> sources) {
+		this.sources = sources;
 	}
 
 	/**

@@ -5,11 +5,12 @@ Ext.require([
 Ext.define('Presage2.view.VisualiserPlugin', {
 	extend: 'Ext.Panel',
 	alias: 'widget.visualiserplugin',
+	drawPanel: 'Presage2.view.2DVisualiser',
 	initComponent: function() {
 		var me = this;
 		this.pageSize = 50;
 		this.store = Ext.data.StoreManager.lookup('Simulations');
-		this.drawPanel = Ext.create('Presage2.view.2DVisualiser', {
+		this.drawPanel = Ext.create(this.drawPanel, {
 			layout: 'fit',
 			height: 500,
 			border: 5

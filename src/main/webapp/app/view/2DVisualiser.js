@@ -6,7 +6,7 @@ Ext.define('Presage2.view.2DVisualiser', {
 		Ext.apply(this, {
 			width: 520,
 			height: 520,
-			viewBox: false
+			viewBox: true
 		});
 		this.callParent(arguments);
 		this.sprites = {};
@@ -21,27 +21,10 @@ Ext.define('Presage2.view.2DVisualiser', {
 		this.sprites = {};
 
 		// configure scaling
-		this.scale = 1.0;
-		if("xSize" in simulation.data.parameters
-				&& "ySize" in simulation.data.parameters) {
-			var size = Math.max(simulation.data.parameters.xSize, simulation.data.parameters.ySize);
-			this.scale = 250 / size;
-		}
+		this.scale = this.getScale(simulation);
 
 		// load time point 0
-		this.timeline.getById(0).agents().each(function(ag) {
-			if(ag.data.data.x != undefined && ag.data.data.y != undefined) {
-				var sp = this.surface.add({
-					type: 'circle',
-					radius: 5,
-					fill: '#111',
-					x: 10 + (ag.data.data.x * this.scale),
-					y: 10 + (ag.data.data.y * this.scale)
-				});
-				sp.show(true);
-				this.sprites[ag.getId()] = sp
-			}
-		}, this);
+		this.createSprites(this.timeline.getById(0));
 		this.setTimeStep(0);
 	},
 	setTimeStep: function(time) {
@@ -51,13 +34,42 @@ Ext.define('Presage2.view.2DVisualiser', {
 				if(ag.getId() in this.sprites) {
 					var sp = this.sprites[ag.getId()];
 					sp.setAttributes({
-						translate: {
-							x: 10 + (ag.data.data.x * this.scale),
-							y: 10 + (ag.data.data.y * this.scale)
-						}
+						x: 10 + (ag.data.data.x * this.scale),
+						y: 10 + (ag.data.data.y * this.scale)
 					}, true)
 				}
 			}, this);
 		}
+	},
+	createSprites: function(timeline) {
+		timeline.agents().each(function(ag) {
+			if(ag.data.data.x != undefined && ag.data.data.y != undefined) {
+				var sp = this.surface.add(this.drawAgentSprite(ag));
+				sp.show(true);
+				this.sprites[ag.getId()] = sp
+			}
+		}, this);
+	},
+	drawAgentSprite: function(ag) {
+		var agent = {
+			type: 'circle',
+			radius: 5,
+			fill: '#111',
+			x: 10 + (ag.data.data.x * this.scale),
+			y: 10 + (ag.data.data.y * this.scale)
+		};
+		return agent;
+	},
+	getScale: function(simulation) {
+		if("xSize" in simulation.data.parameters
+				&& "ySize" in simulation.data.parameters) {
+			var size = Math.max(simulation.data.parameters.xSize, simulation.data.parameters.ySize);
+			return 500 / size;
+		} else if("x" in simulation.data.parameters
+				&& "y" in simulation.data.parameters) {
+			var size = Math.max(simulation.data.parameters.x, simulation.data.parameters.y);
+			return 500 / size;
+		} else
+			return 1.0;
 	}
 });

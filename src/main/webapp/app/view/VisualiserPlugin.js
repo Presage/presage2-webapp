@@ -212,6 +212,53 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 				]
 			}]
 		});
+
+		var pmodel = Ext.define('Property', {
+			extend: 'Ext.data.Model',
+			fields: [
+				{name: 'key', type: 'string'},
+				{name: 'value', type: 'string'}
+			]
+		});
+		this.propertyData = {
+			key: '',
+			value: '',
+			children: [],
+			expanded: true
+		};
+
+		this.propertyStore = Ext.create('Ext.data.TreeStore', {
+			model: pmodel,
+			root: this.propertyData
+		});
+
+		this.properties = Ext.create('Ext.tree.Panel', {
+			title: 'Agent properties',
+			margin: 10,
+			width: 400,
+			height: 400,
+			store: this.propertyStore,
+			rootVisible: false,
+			columns: [
+				{
+					xtype: 'treecolumn',
+					flex: 1
+				},
+				{
+					text: "Key",
+					dataIndex: 'key',
+					flex: 2
+				},{
+					text: "Value",
+					dataIndex: 'value',
+					flex: 4
+				}
+			]
+		});
+		this.sidemenu.add(this.properties);
+
+		this.addListener('setTime', this.updateAgentProperties, this);
+
 		this.callParent(arguments);
 
 		this.addListener('setTime', function(newTime) {
@@ -268,8 +315,65 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 		this.controls.setProgress(0, this.sim.timeline().getTotalCount());
 		this.controls.enablePanel();
 		this.drawPanel.loadSimulation(this.sim.getId());
+
+		this.propertyStore.getRootNode().removeAll();
+		this.updateAgentProperties(0);
 	},
 	onGuaranteedRange : function(range, start, end) {
 		this.sim.timeline().loadRecords(range);
+	},
+	updateAgentProperties: function(newTime) {
+		if(this.sim != undefined) {
+			var timeline = this.sim.timeline(),
+				step = timeline.getById(newTime);
+			if(step != null) {
+				var rootNode = this.propertyStore.getRootNode();
+				if(rootNode.hasChildNodes()) {
+					// update nodes
+					var agentNodes = {};
+					rootNode.eachChild(function(node) {
+						agentNodes[node.data.value] = node;
+					}, this);
+					step.agents().each(function(ag) {
+						if(ag.getId() in agentNodes) {
+							// node exists for this agent
+							var node = agentNodes[ag.getId()],
+								props = ag.data.data;
+							node.eachChild(function(prop) {
+								if(prop.get('key') in props) {
+									prop.set('value', props[prop.data.key]);
+								}
+							}, this);
+						} else {
+							this.insertAgentProperties(ag);
+						}
+					}, this);
+				} else {
+					// create nodes
+					step.agents().each(this.insertAgentProperties, this);
+				}
+			}
+		}
+	},
+	insertAgentProperties: function(ag) {
+		var rootNode = this.propertyStore.getRootNode();
+		var props = ag.data.data,
+			node = Ext.create('Property', {
+				key: "id",
+				value: ag.getId()
+			});
+		node = rootNode.appendChild(node);
+		node.appendChild({
+			key: "aid",
+			value: ag.getId(),
+			leaf: true
+		});
+		for(var p in props) {
+			node.appendChild({
+				key: p,
+				value: props[p],
+				leaf: true
+			});
+		}
 	}
 });

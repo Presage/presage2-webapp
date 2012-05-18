@@ -89,6 +89,7 @@
 					<excludes>
 						<exclude>src/main/webapp/**</exclude>
 						<exclude>src/main/resources/**</exclude>
+						<exclude>header.txt</exclude>
 						<exclude>header2011.txt</exclude>
 					</excludes>
 				</configuration>

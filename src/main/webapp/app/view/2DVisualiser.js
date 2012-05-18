@@ -11,6 +11,8 @@ Ext.define('Presage2.view.2DVisualiser', {
 		this.callParent(arguments);
 		this.sprites = {};
 	},
+	xOffset: 10,
+	yOffset: 10,
 	loadSimulation: function(simId) {
 		var simulation = Ext.data.StoreManager.lookup('Simulations').getById(simId);
 		this.timeline = simulation.timeline();
@@ -35,17 +37,19 @@ Ext.define('Presage2.view.2DVisualiser', {
 					var sp = this.sprites[ag.getId()];
 					if("x" in ag.data.data && "y" in ag.data.data) {
 						sp.setAttributes({
-							x: 10 + (ag.data.data.x * this.scale),
-							y: 10 + (ag.data.data.y * this.scale)
+							x: this.xOffset + (ag.data.data.x * this.scale),
+							y: this.yOffset + (ag.data.data.y * this.scale)
 						}, true)
 					} else {
 						sp.remove();
 						delete this.sprites[ag.getId()];
 					}
 				} else {
-					var sp = this.surface.add(this.drawAgentSprite(ag));
-					sp.show(true);
-					this.sprites[ag.getId()] = sp;
+					if("x" in ag.data.data && "y" in ag.data.data) {
+						var sp = this.surface.add(this.drawAgentSprite(ag));
+						sp.show(true);
+						this.sprites[ag.getId()] = sp;
+					}
 				}
 			}, this);
 		}
@@ -64,8 +68,8 @@ Ext.define('Presage2.view.2DVisualiser', {
 			type: 'circle',
 			radius: 5,
 			fill: '#111',
-			x: 10 + (ag.data.data.x * this.scale),
-			y: 10 + (ag.data.data.y * this.scale)
+			x: this.xOffset + (ag.data.data.x * this.scale),
+			y: this.yOffset + (ag.data.data.y * this.scale)
 		};
 		return agent;
 	},

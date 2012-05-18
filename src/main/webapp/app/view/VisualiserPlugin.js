@@ -137,7 +137,7 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 					clearTimeout(me.controls.timeout);
 					return;
 				}
-				if(me.currentTime == me.sim.timeline().getTotalCount()) {
+				if(me.currentTime == me.sim.timeline().getTotalCount() -1) {
 					me.controls.pause();
 				}
 				me.fireEvent('setTime', me.currentTime + 1);

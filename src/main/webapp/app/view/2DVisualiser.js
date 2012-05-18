@@ -33,10 +33,19 @@ Ext.define('Presage2.view.2DVisualiser', {
 			step.agents().each(function(ag) {
 				if(ag.getId() in this.sprites) {
 					var sp = this.sprites[ag.getId()];
-					sp.setAttributes({
-						x: 10 + (ag.data.data.x * this.scale),
-						y: 10 + (ag.data.data.y * this.scale)
-					}, true)
+					if("x" in ag.data.data && "y" in ag.data.data) {
+						sp.setAttributes({
+							x: 10 + (ag.data.data.x * this.scale),
+							y: 10 + (ag.data.data.y * this.scale)
+						}, true)
+					} else {
+						sp.remove();
+						delete this.sprites[ag.getId()];
+					}
+				} else {
+					var sp = this.surface.add(this.drawAgentSprite(ag));
+					sp.show(true);
+					this.sprites[ag.getId()] = sp;
 				}
 			}, this);
 		}

@@ -338,12 +338,23 @@ Ext.define('Presage2.view.VisualiserPlugin', {
 						if(ag.getId() in agentNodes) {
 							// node exists for this agent
 							var node = agentNodes[ag.getId()],
-								props = ag.data.data;
+								props = ag.data.data,
+								updated = [];
 							node.eachChild(function(prop) {
 								if(prop.get('key') in props) {
 									prop.set('value', props[prop.data.key]);
+									updated.push(prop.get('key'));
 								}
 							}, this);
+							for(var p in props) {
+								if(updated.indexOf(p) == -1) {
+									node.appendChild({
+										key: p,
+										value: props[p],
+										leaf: true
+									});
+								}
+							}
 						} else {
 							this.insertAgentProperties(ag);
 						}

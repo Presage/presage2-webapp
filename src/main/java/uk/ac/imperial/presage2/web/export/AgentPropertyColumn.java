@@ -74,7 +74,7 @@ public class AgentPropertyColumn extends ColumnDefinition {
 
 	@Override
 	public String getColumnValue(String... inputs) {
-		final int t = Integer.parseInt(inputs[0]);
+		final int t = timeSeries ? Integer.parseInt(inputs[0]) : 0;
 		final Iterator<PersistentAgent> sourceIterator = this.agents.iterator();
 
 		return this.function.getValue(new Iterator<Number>() {
@@ -89,10 +89,11 @@ public class AgentPropertyColumn extends ColumnDefinition {
 			private Number getNext() {
 				if (sourceIterator.hasNext()) {
 					PersistentAgent current = sourceIterator.next();
-					Map<String, String> agentProperties = current.getState(t)
+					Map<String, String> agentProperties = timeSeries ? current
+							.getState(t).getProperties() : current
 							.getProperties();
 					// check transient conditions.
-					if (condition != null
+					if (timeSeries && condition != null
 							&& !condition.testTransient(agentProperties)) {
 						return getNext();
 					}
@@ -100,8 +101,7 @@ public class AgentPropertyColumn extends ColumnDefinition {
 						return getNext();
 					else {
 						try {
-							return Double.parseDouble(agentProperties
-									.get(property));
+							return Double.parseDouble(agentProperties.get(property));
 						} catch (NumberFormatException e) {
 							return getNext();
 						}

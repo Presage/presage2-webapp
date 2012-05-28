@@ -82,6 +82,9 @@ Ext.define('Presage2.view.2DVisualiser', {
 				&& "y" in simulation.data.parameters) {
 			var size = Math.max(simulation.data.parameters.x, simulation.data.parameters.y);
 			return 500 / size;
+		} else if("size" in simulation.data.parameters) {
+			var size = parseInt(simulation.data.parameters.size);
+			return 500 / size;
 		} else
 			return 1.0;
 	}

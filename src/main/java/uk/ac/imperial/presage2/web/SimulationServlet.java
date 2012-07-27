@@ -25,9 +25,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.TimerTask;
 import java.util.Map.Entry;
-import java.util.Timer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,7 +39,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import uk.ac.imperial.presage2.core.cli.run.ExecutorManager;
 import uk.ac.imperial.presage2.core.db.DatabaseService;
 import uk.ac.imperial.presage2.core.db.StorageService;
 import uk.ac.imperial.presage2.core.db.persistent.PersistentSimulation;
@@ -64,43 +61,9 @@ public class SimulationServlet extends GenericPresageServlet {
 
 	private final static Pattern ID_REGEX = Pattern.compile("/(\\d+)$");
 
-	private final ExecutorManager executorManager;
-
 	@Inject
-	public SimulationServlet(DatabaseService db, StorageService sto,
-			ExecutorManager execManager) throws Exception {
+	public SimulationServlet(DatabaseService db, StorageService sto) throws Exception {
 		super(db, sto);
-		this.executorManager = execManager;
-		this.executorManager.start();
-		Timer executorSubmittor = new Timer("executor-submittor", true);
-
-		executorSubmittor.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				synchronized (SimulationServlet.this) {
-					ensureCache();
-					for (PersistentSimulation sim : cachedSimulations) {
-						if (sim.getState().equalsIgnoreCase("AUTO START")) {
-							logger.info("Submitting simulation " + sim.getID()
-									+ " to executor.");
-							executorManager.addSimulation(sim.getID());
-						}
-					}
-				}
-			}
-		}, 1000, 30000);
-	}
-
-	@Override
-	public void destroy() {
-		// notify executor manager of shutdown
-		logger.debug("Sending shutdown to executor manager.");
-		this.executorManager.addSimulation(0);
-		try {
-			this.executorManager.join();
-		} catch (InterruptedException e) {
-		}
-		super.destroy();
 	}
 
 	/**
